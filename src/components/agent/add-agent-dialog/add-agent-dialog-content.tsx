@@ -40,7 +40,7 @@ export function AddAgentDialogContent() {
   }, [agents, searchQuery]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* 固定的头部搜索区域 */}
       <div className="flex-none border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="flex items-center gap-4 p-4">
@@ -71,8 +71,8 @@ export function AddAgentDialogContent() {
       </div>
 
       {/* 可滚动的内容区域 */}
-      <div className="flex-1 min-h-0 overflow-y-auto">
-        <div className="p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-4">
           <AgentList
             agents={filteredAgents}
             loading={isLoading}

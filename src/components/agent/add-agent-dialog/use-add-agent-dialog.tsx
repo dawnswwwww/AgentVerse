@@ -10,7 +10,7 @@ export function useAddAgentDialog() {
       title: "Agent 管理",
       content: <AddAgentDialogContent />,
       // 使用 className 来控制样式
-      className: "sm:max-w-3xl h-[90vh] sm:h-[85vh]",
+      className: "sm:max-w-3xl sm:h-[85vh] overflow-hidden",
       // 不需要底部按钮
       showFooter: false
     });

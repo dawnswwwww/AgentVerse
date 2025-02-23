@@ -70,8 +70,8 @@ AgentVerse 是一个开源的智能体生态系统，支持多个主流 AI 模�
 
 1. 克隆并安装
 ```bash
-git clone https://github.com/yourusername/ai-agent-discussion.git
-cd ai-agent-discussion
+git clone https://github.com/Peiiii/AgentVerse.git
+cd AgentVerse
 pnpm install
 ```
 
@@ -102,4 +102,4 @@ pnpm dev
 
 ## 📞 联系我们
 
-- [GitHub Issues](https://github.com/yourusername/ai-agent-discussion/issues)
+- [GitHub Issues](https://github.com/Peiiii/AgentVerse/issues)

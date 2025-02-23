@@ -70,8 +70,8 @@ Visit our online demo: [Demo](https://agent.dimstack.com)
 
 1. Clone and Install
 ```bash
-git clone https://github.com/yourusername/ai-agent-discussion.git
-cd ai-agent-discussion
+git clone https://github.com/Peiiii/AgentVerse.git
+cd AgentVerse
 pnpm install
 ```
 
@@ -101,4 +101,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact
 
-- [GitHub Issues](https://github.com/yourusername/ai-agent-discussion/issues) 
+- [GitHub Issues](https://github.com/Peiiii/AgentVerse/issues) 

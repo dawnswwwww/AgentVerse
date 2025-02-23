@@ -11,8 +11,8 @@ import { useAgents } from "@/hooks/useAgents";
 import { useDiscussionMembers } from "@/hooks/useDiscussionMembers";
 import { useModal } from "@/components/ui/modal";
 import { cn, formatTime } from "@/lib/utils";
-import { Download, MoreVertical, Pencil, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Download, MoreVertical, Pencil, Trash2, X, Check } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { DiscussionItemProps } from "./types";
 import { DiscussionMember } from "@/types/discussion-member";
 
@@ -27,11 +27,44 @@ export function DiscussionItem({
   const { getMembersForDiscussion } = useDiscussionMembers();
   const [members, setMembers] = useState<DiscussionMember[]>([]);
   const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(discussion.title);
   const modal = useModal();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     getMembersForDiscussion(discussion.id).then(setMembers);
   }, [discussion.id, getMembersForDiscussion]);
+
+  useEffect(() => {
+    let timer: number;
+    if (isEditing) {
+      timer = window.setTimeout(() => {
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      }, 200);
+    }
+    return () => clearTimeout(timer);
+  }, [isEditing]);
+
+  const handleStartEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditValue(discussion.title);
+    setIsEditing(true);
+  };
+
+  const handleConfirmEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (editValue.trim()) {
+      onRename(editValue.trim());
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditValue(discussion.title);
+    setIsEditing(false);
+  };
 
   const handleDelete = () => {
     modal.confirm({
@@ -61,7 +94,7 @@ export function DiscussionItem({
         ]
       )}
       onClick={(e) => {
-        if ((e.target as HTMLElement).closest('.discussion-actions')) {
+        if ((e.target as HTMLElement).closest('.discussion-actions, .editing-actions')) {
           return;
         }
         onClick();
@@ -108,18 +141,43 @@ export function DiscussionItem({
         <div className="flex items-center justify-between gap-2">
           <div className="flex-1 min-w-0">
             {isEditing ? (
-              <Input
-                value={discussion.title}
-                onChange={(e) => onRename(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === 'Escape') {
-                    setIsEditing(false);
-                  }
-                }}
-                onBlur={() => setIsEditing(false)}
-                className="h-5 text-sm px-1"
-                autoFocus
-              />
+              <div className="flex items-center gap-1 editing-actions">
+                <Input
+                  ref={inputRef}
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    e.stopPropagation();
+                    if (e.key === 'Enter' && editValue.trim()) {
+                      e.preventDefault();
+                      handleConfirmEdit(e as unknown as React.MouseEvent);
+                    } else if (e.key === 'Escape') {
+                      e.preventDefault();
+                      handleCancelEdit(e as unknown as React.MouseEvent);
+                    }
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="h-5 text-sm px-1 pr-12"
+                />
+                <div className="absolute right-1 flex items-center gap-0.5">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleCancelEdit}
+                    className="h-4 w-4 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleConfirmEdit}
+                    className="h-4 w-4 text-emerald-500 hover:text-emerald-600"
+                  >
+                    <Check className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
             ) : (
               <div className="flex items-center gap-1">
                 <span className={cn(
@@ -168,14 +226,15 @@ export function DiscussionItem({
                   sideOffset={4}
                 >
                   <DropdownMenuItem 
-                    onClick={() => setIsEditing(true)}
+                    onClick={handleStartEdit}
                     className="h-7 text-[11px] px-2"
                   >
                     <Pencil className="h-2.5 w-2.5 mr-1.5" />
                     重命名
                   </DropdownMenuItem>
                   <DropdownMenuItem 
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       // TODO: 实现导出功能
                     }}
                     className="h-7 text-[11px] px-2"
@@ -185,7 +244,10 @@ export function DiscussionItem({
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="my-0.5" />
                   <DropdownMenuItem 
-                    onClick={handleDelete}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete();
+                    }}
                     className="h-7 text-[11px] px-2 text-destructive focus:text-destructive"
                   >
                     <Trash2 className="h-2.5 w-2.5 mr-1.5" />

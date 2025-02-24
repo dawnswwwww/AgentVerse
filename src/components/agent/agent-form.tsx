@@ -144,7 +144,7 @@ export function AgentForm({
               </Label>
               <Input
                 id="expertise"
-                value={formData.expertise.join(", ")}
+                value={formData.expertise?.join(", ")}
                 onChange={(e) =>
                   setFormData({
                     ...formData,

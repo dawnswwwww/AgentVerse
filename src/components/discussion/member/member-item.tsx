@@ -39,7 +39,7 @@ function MemberExpandedContent({
             <span>专业领域</span>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {agent.expertise.map((item, index) => (
+            {agent.expertise?.map((item, index) => (
               <span 
                 key={index}
                 className="px-2 py-0.5 text-xs rounded-md bg-muted/50 text-muted-foreground"

@@ -110,7 +110,12 @@ export class LocalStorageProvider<T extends { id: string }>
     const index = items.findIndex((item) => item.id === id);
     if (index === -1) throw new Error("Item not found");
 
-    const updatedItem = { ...items[index], ...data };
+    // 过滤掉 undefined 值
+    const filteredData = Object.fromEntries(
+      Object.entries(data).filter(([, value]) => value !== undefined)
+    );
+
+    const updatedItem = { ...items[index], ...filteredData };
     items[index] = updatedItem;
     this.setStoredItems(items);
     return updatedItem;

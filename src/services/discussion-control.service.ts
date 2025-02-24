@@ -1,12 +1,9 @@
-import { DEFAULT_SETTINGS } from "@/config/settings";
-import { BaseAgent } from "@/lib/agent";
 import { CapabilityRegistry } from "@/lib/capabilities";
 import {
   DiscussionEnvBus,
   DiscussionKeys,
 } from "@/lib/discussion/discussion-env";
 import { RxEvent } from "@/lib/rx-event";
-import { WithState } from "@/lib/with-event";
 import { messagesResource } from "@/resources";
 import { discussionCapabilitiesResource } from "@/resources/discussion-capabilities.resource";
 import { AgentManager } from "@/services/agent/agent-manager";
@@ -14,15 +11,14 @@ import { messageService } from "@/services/message.service";
 import { typingIndicatorService } from "@/services/typing-indicator.service";
 import {
   AgentMessage,
-  DiscussionSettings,
-  NormalMessage,
+  NormalMessage
 } from "@/types/discussion";
-import { DiscussionMember } from "@/types/discussion-member";
 import {
   DiscussionError,
   DiscussionErrorType,
   handleDiscussionError,
 } from "./discussion-error.util";
+import { DiscussionStateManager } from "./discussion/discussion-state-manager";
 
 class TimeoutManager {
   private timeouts = new Set<NodeJS.Timeout>();
@@ -42,20 +38,8 @@ class TimeoutManager {
   }
 }
 
-type DiscussionControlState = {
-  messages: AgentMessage[];
-  isPaused: boolean;
-  currentDiscussionId: string | null;
-  currentRound: number;
-  currentSpeakerIndex: number;
-  settings: DiscussionSettings;
-  members: DiscussionMember[];
-  topic: string;
-};
-
-export class DiscussionControlService extends WithState<DiscussionControlState> {
+export class DiscussionControlService extends DiscussionStateManager {
   onError$ = new RxEvent<Error>();
-  onCurrentDiscussionIdChange$ = new RxEvent<string | null>();
 
   private timeoutManager = new TimeoutManager();
   private agentManager: AgentManager;
@@ -67,16 +51,7 @@ export class DiscussionControlService extends WithState<DiscussionControlState> 
   private runtimeCleanupHandlers: Array<() => void> = []; // 运行时清理
 
   constructor() {
-    super({
-      messages: [] as AgentMessage[],
-      isPaused: true,
-      currentDiscussionId: null as string | null,
-      settings: DEFAULT_SETTINGS,
-      currentRound: 0,
-      currentSpeakerIndex: -1,
-      members: [] as DiscussionMember[],
-      topic: "",
-    });
+    super();
     this.env = new DiscussionEnvBus();
     this.agentManager = new AgentManager(this.env);
     this.initializeService();
@@ -98,23 +73,14 @@ export class DiscussionControlService extends WithState<DiscussionControlState> 
     this.serviceCleanupHandlers.push(() => membersSub());
   }
 
-  getCurrentDiscussionId(): string | null {
-    return this.getState().currentDiscussionId;
-  }
-
-  getCurrentDiscussionId$() {
-    return this.store.namespaces.currentDiscussionId.$;
-  }
-
   setCurrentDiscussionId(id: string | null) {
-    const oldId = this.getState().currentDiscussionId;
+    const oldId = this.getCurrentDiscussionId();
     if (oldId !== id) {
       // 1. 先清理当前讨论的所有状态
       this.cleanupCurrentDiscussion();
 
       // 2. 再设置新的讨论 ID
-      this.setState({ currentDiscussionId: id });
-      this.onCurrentDiscussionIdChange$.next(id);
+      super.setCurrentDiscussionId(id);
     }
   }
 
@@ -133,11 +99,7 @@ export class DiscussionControlService extends WithState<DiscussionControlState> 
     this.agentManager.pauseAll();
 
     // 5. 重置讨论相关状态
-    this.setState({
-      currentRound: 0,
-      currentSpeakerIndex: -1,
-      isPaused: true
-    });
+    this.resetDiscussionState();
 
     // 6. 执行讨论级清理
     this.discussionCleanupHandlers.forEach((cleanup) => cleanup());
@@ -145,14 +107,6 @@ export class DiscussionControlService extends WithState<DiscussionControlState> 
 
     // 7. 清理运行时资源
     this.cleanupRuntime();
-  }
-
-  setMembers(members: DiscussionMember[]) {
-    this.setState({ members });
-  }
-
-  setMessages(messages: AgentMessage[]) {
-    this.setState({ messages });
   }
 
   onMessage(message: AgentMessage) {
@@ -187,7 +141,7 @@ export class DiscussionControlService extends WithState<DiscussionControlState> 
         timestamp: new Date(),
       };
       messageService.addMessage(
-        this.getState().currentDiscussionId!,
+        this.getCurrentDiscussionId()!,
         warningMessage
       );
       messagesResource.current.reload();
@@ -201,7 +155,7 @@ export class DiscussionControlService extends WithState<DiscussionControlState> 
   // 运行时控制
   pause() {
     // 1. 设置暂停状态
-    this.setState({ isPaused: true });
+    this.setPaused(true);
 
     // 2. 暂停所有 agents
     this.agentManager.pauseAll();
@@ -221,7 +175,7 @@ export class DiscussionControlService extends WithState<DiscussionControlState> 
 
   resume() {
     // 1. 设置恢复状态
-    this.setState({ isPaused: false });
+    this.setPaused(false);
 
     // 2. 恢复调度器
     this.env.speakScheduler.setPaused(false);
@@ -268,21 +222,7 @@ export class DiscussionControlService extends WithState<DiscussionControlState> 
     this.cleanupService();
 
     // 4. 重置所有状态
-    this.resetState();
-  }
-
-  // 状态重置
-  private resetState() {
-    this.setState({
-      messages: [],
-      isPaused: true,
-      currentDiscussionId: null,
-      settings: DEFAULT_SETTINGS,
-      currentRound: 0,
-      currentSpeakerIndex: -1,
-      members: [],
-      topic: "",
-    });
+    this.resetAllState();
   }
 
   private handleError(
@@ -302,19 +242,19 @@ export class DiscussionControlService extends WithState<DiscussionControlState> 
 
     const { shouldPause } = handleDiscussionError(discussionError);
     if (shouldPause) {
-      this.setState({ isPaused: true });
+      this.setPaused(true);
     }
     this.onError$.next(discussionError);
   }
 
-  getAgent(agentId: string): BaseAgent | undefined {
+  getAgent(agentId: string) {
     return this.agentManager.getAgent(agentId);
   }
 
   // 恢复已有讨论
   private async resumeExistingDiscussion(): Promise<void> {
-    const messages = this.getState().messages;
-    const lastMessage = messages[messages.length - 1];
+    const state = this.getState();
+    const lastMessage = state.messages[state.messages.length - 1];
 
     if (lastMessage) {
       // 1. 初始化讨论级资源
@@ -372,16 +312,14 @@ export class DiscussionControlService extends WithState<DiscussionControlState> 
   async run(): Promise<void> {
     try {
       // 1. 检查是否已经在运行
-      if (!this.getState().isPaused) {
+      if (!this.isPaused()) {
         console.log("[DiscussionControl] Discussion is already running");
         return;
       }
 
       // 2. 检查是否有历史消息和成员
-      if (
-        this.getState().messages.length > 0 &&
-        this.getState().members.length > 0
-      ) {
+      const state = this.getState();
+      if (state.messages.length > 0 && state.members.length > 0) {
         console.log("[DiscussionControl] Resuming existing discussion");
         await this.resumeExistingDiscussion();
         return;

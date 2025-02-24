@@ -27,6 +27,7 @@ export type SpeakingState = {
   agentId: string | null;
   startTime: Date | null;
   timeoutId: NodeJS.Timeout | null;
+  controller: AbortController | null;
 };
 
 export class SpeakScheduler {
@@ -40,7 +41,8 @@ export class SpeakScheduler {
     speaking: {
       agentId: null as string | null,
       startTime: null as Date | null,
-      timeoutId: null as NodeJS.Timeout | null
+      timeoutId: null as NodeJS.Timeout | null,
+      controller: null as AbortController | null,
     } as SpeakingState,
     isPaused: false
   });
@@ -54,6 +56,7 @@ export class SpeakScheduler {
   public onMessageProcessed$ = new RxEvent<number>();
   public onLimitReached$ = new RxEvent<void>();
   public onSpeakTimeout$ = new RxEvent<string>(); // 发送超时的 agentId
+  public onSpeakInterrupted$ = new RxEvent<string>(); // 发言被中断的 agentId
 
   constructor() {
     // 监听说话状态变化
@@ -68,7 +71,12 @@ export class SpeakScheduler {
   public setPaused(paused: boolean) {
     this.isPausedBean.set(paused);
     if (paused) {
-      // 暂停时清空请求队列
+      // 暂停时中断当前发言
+      const currentState = this.speakingStateBean.get();
+      if (currentState.agentId) {
+        this.interruptSpeaking(currentState.agentId);
+      }
+      // 清空请求队列
       this.requests = [];
       // 清除当前说话状态
       this.clearSpeakingState();
@@ -107,6 +115,7 @@ export class SpeakScheduler {
     if (this.isPausedBean.get()) {
       return;
     }
+    console.log("[SpeakScheduler] processNextRequest", this.requests);
 
     // 如果当前有人在说话，不处理
     if (this.speakingStateBean.get().agentId) {
@@ -134,10 +143,12 @@ export class SpeakScheduler {
     }
 
     // 设置说话状态
+    const controller = new AbortController();
     this.speakingStateBean.set({
       agentId: nextSpeaker.agentId,
       startTime: new Date(),
-      timeoutId: null
+      timeoutId: null,
+      controller
     });
 
     // 清除被选中 agent 的所有其他请求
@@ -178,11 +189,15 @@ export class SpeakScheduler {
     if (currentState.timeoutId) {
       clearTimeout(currentState.timeoutId);
     }
+    if (currentState.controller) {
+      currentState.controller.abort();
+    }
     
     this.speakingStateBean.set({
       agentId: null,
       startTime: null,
-      timeoutId: null
+      timeoutId: null,
+      controller: null
     });
   }
 
@@ -248,5 +263,24 @@ export class SpeakScheduler {
   public resetCounter(): void {
     this.messageCounterBean.set(0);
     this.onMessageProcessed$.next(this.messageCounterBean.get());
+  }
+
+  private interruptSpeaking(agentId: string): void {
+    const currentState = this.speakingStateBean.get();
+    if (currentState.agentId === agentId && currentState.controller) {
+      currentState.controller.abort();
+      this.onSpeakInterrupted$.next(agentId);
+    }
+  }
+
+  public startSpeaking(agentId: string): AbortController {
+    const controller = new AbortController();
+    this.speakingStateBean.set({
+      agentId,
+      startTime: new Date(),
+      timeoutId: null,
+      controller
+    } as SpeakingState);
+    return controller;
   }
 }

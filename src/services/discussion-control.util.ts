@@ -1,12 +1,12 @@
 import { DEFAULT_SETTINGS } from "@/config/settings";
 import { BaseAgent, ChatAgent } from "@/lib/agent";
 import {
-    DiscussionEnvBus,
-    DiscussionKeys,
+  DiscussionEnvBus,
+  DiscussionKeys,
 } from "@/lib/discussion/discussion-env";
 import { RxEvent } from "@/lib/rx-event";
 import { agentListResource } from "@/resources";
-import { AgentMessage, NormalMessage } from "@/types/discussion";
+import { AgentMessage } from "@/types/discussion";
 import { DiscussionMember } from "@/types/discussion-member";
 import { createNestedBean, createProxyBean } from "packages/rx-nested-bean/src";
 
@@ -169,10 +169,6 @@ export class CleanupManager {
 export class EventManager {
   private env: DiscussionEnvBus;
   private cleanupManager: CleanupManager;
-
-  readonly onRequestSendMessage$ = new RxEvent<
-    Pick<NormalMessage, "agentId" | "content" | "type">
-  >();
   readonly onError$ = new RxEvent<Error>();
   readonly onCurrentDiscussionIdChange$ = new RxEvent<string | null>();
 

@@ -3,6 +3,7 @@ import {
   DiscussionKeys,
   IDiscussionEnvBus,
 } from "../discussion/discussion-env";
+import { RxEvent } from "@/lib/rx-event";
 
 /**
  * Agent的基础配置接口
@@ -45,6 +46,9 @@ export abstract class BaseAgent<S extends BaseAgentState = BaseAgentState> {
   protected state: S;
   protected lastActionMessageId?: string;
   protected useStreaming: boolean = true; // 默认使用流式输出
+
+  // 状态变更事件
+  public readonly onStateChange$ = new RxEvent<S>();
 
   constructor(config: IAgentConfig, initialState: S) {
     this.config = config;
@@ -156,6 +160,9 @@ export abstract class BaseAgent<S extends BaseAgentState = BaseAgentState> {
         isThinking: this.state.isThinking || false,
       });
     }
+
+    // 发送状态变更事件
+    this.onStateChange$.next(this.state);
   }
 
   // 允许切换输出模式
@@ -169,18 +176,22 @@ export abstract class BaseAgent<S extends BaseAgentState = BaseAgentState> {
   private cleanupHandlers: Array<() => void> = [];
 
   public pause(): void {
-    this.setState((prevState) => ({ 
+    this.setState((prevState) => ({
       ...prevState,
-      isPaused: true 
+      isPaused: true,
+      isThinking: false
     } as Partial<S>));
+    this.onStateChange$.next(this.state);
     this.onPause();
   }
 
   public resume(): void {
-    this.setState((prevState) => ({ 
+    this.setState((prevState) => ({
       ...prevState,
-      isPaused: false 
+      isPaused: false,
+      isThinking: false
     } as Partial<S>));
+    this.onStateChange$.next(this.state);
     this.onResume();
   }
 

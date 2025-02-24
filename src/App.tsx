@@ -253,7 +253,6 @@ function AppContent() {
                     <div className="flex flex-col h-full">
                       <DiscussionController
                         status={status}
-                        onSendMessage={addMessage}
                         onToggleMembers={handleToggleMembers}
                         enableSettings={false}
                       />

@@ -36,6 +36,24 @@ export abstract class MessageHandlingAgent<
       }
     );
     this.addCleanup(off);
+
+    // 监听中断事件
+    this.addCleanup(
+      this.env.speakScheduler.onSpeakInterrupted$.listen((agentId) => {
+        if (agentId === this.config.agentId) {
+          console.log(`[ChatAgent] ${this.config.name} speaking interrupted`);
+        }
+      })
+    );
+
+    // 监听超时事件
+    this.addCleanup(
+      this.env.speakScheduler.onSpeakTimeout$.listen((agentId) => {
+        if (agentId === this.config.agentId) {
+          console.log(`[ChatAgent] ${this.config.name} speaking timeout`);
+        }
+      })
+    );
   }
 
   // 消息处理核心流程
@@ -43,7 +61,6 @@ export abstract class MessageHandlingAgent<
     if (!this.shouldProcessMessage()) {
       return; // 如果已暂停，不处理消息
     }
-
     if (message.type === "action_result") {
       // 处理 action 结果
       if (message.originMessageId === this.lastActionMessageId) {
@@ -76,28 +93,43 @@ export abstract class MessageHandlingAgent<
     this.setState({ isThinking: true } as Partial<S>);
 
     try {
-      const message = this.useStreaming
-        ? await this.generateStreamingMessage(request.message as NormalMessage)
-        : await this.generateStandardMessage(request.message as NormalMessage);
+      const message = request.message;
+      let responseMessage: NormalMessage;
 
-      if (!message) {
-        this.setState({ isThinking: false } as Partial<S>);
-        return;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+      if (message.type === "text") {
+        responseMessage = this.useStreaming
+          ? await this.generateStreamingMessage(message)
+          : await this.generateStandardMessage(message);
+      } else if (message.type === "action_result") {
+        responseMessage = await this.generateStreamingActionResponse(message);
+      } else {
+        throw new Error(`Unsupported message type: ${message.type}`);
       }
-      this.state.lastSpeakTime =
-        message.timestamp instanceof Date
-          ? message.timestamp
-          : new Date(message.timestamp);
-      this.setState({ isThinking: false } as Partial<S>);
-      this.env.eventBus.emit(DiscussionKeys.Events.message, message);
-      this.onDidSendMessage(message);
+
+      if (!responseMessage) {
+        this.setState({ isThinking: false } as Partial<S>);
+        return;
+      }
+
+      this.state.lastSpeakTime = 
+        responseMessage.timestamp instanceof Date
+          ? responseMessage.timestamp
+          : new Date(responseMessage.timestamp);
       
-      // 通知调度器说话完成
-      this.env.speakScheduler.completeSpeaking(this.config.agentId);
+      this.setState({ isThinking: false } as Partial<S>);
+      this.env.eventBus.emit(DiscussionKeys.Events.message, responseMessage);
+      await this.onDidSendMessage(responseMessage);
+
+      // 如果不是流式响应,需要手动通知调度器完成
+      // 流式响应在handleStreamingResponse中已经通知了
+      if (!this.useStreaming) {
+        this.env.speakScheduler.completeSpeaking(this.config.agentId);
+      }
     } catch (error) {
       this.setState({ isThinking: false } as Partial<S>);
       // 出错时也要通知调度器
       this.env.speakScheduler.completeSpeaking(this.config.agentId);
+      console.error("[ChatAgent] Failed to speak:", error);
       throw error;
     }
   }
@@ -142,43 +174,60 @@ export abstract class MessageHandlingAgent<
   ): Promise<NormalMessage> {
     // 创建初始消息
     const initialMessage = await this.addMessage("", {
-      status: "pending",
+      status: "streaming",
       lastUpdateTime: new Date(),
     });
 
     try {
-      // 开始流式输出
-      const stream = await aiService.streamChatCompletion(
-        messages as ChatMessage[]
-      );
+      // 获取中断控制器
+      const controller = this.env.speakScheduler.startSpeaking(this.config.agentId);
 
-      if (!stream) {
-        await this.updateMessage(initialMessage.id, {
-          status: "error",
-          lastUpdateTime: new Date(),
-        });
-      }
+      // 创建流式响应
+      const stream = await aiService.streamChatCompletion(messages);
 
-      // 更新状态为 streaming
-      await this.updateMessage(initialMessage.id, {
-        status: "streaming",
-        lastUpdateTime: new Date(),
-      });
-
+      // 处理流式响应
       let content = "";
-
-      // 处理流式输出
       await new Promise<void>((resolve, reject) => {
-        stream.subscribe({
-          next: async (chunk) => {
+        // 如果已经被中断,直接返回
+        if (controller.signal.aborted) {
+          resolve();
+          return;
+        }
+
+        const subscription = stream.subscribe({
+          next: async (chunk: string) => {
+            // 检查是否被中断
+            if (controller.signal.aborted) {
+              subscription.unsubscribe();
+              await this.updateMessage(initialMessage.id, {
+                status: "completed",
+                content: content + "\n[已中断]",
+                lastUpdateTime: new Date(),
+              });
+              resolve();
+              return;
+            }
+
             content += chunk;
             await this.updateMessage(initialMessage.id, {
               content,
               lastUpdateTime: new Date(),
             });
           },
-          error: reject,
-          complete: resolve,
+          error: async (error: Error) => {
+            subscription.unsubscribe();
+            reject(error);
+          },
+          complete: () => {
+            subscription.unsubscribe();
+            resolve();
+          },
+        });
+
+        // 监听中断信号
+        controller.signal.addEventListener('abort', () => {
+          subscription.unsubscribe();
+          resolve();
         });
       });
 
@@ -187,14 +236,23 @@ export abstract class MessageHandlingAgent<
         status: "completed",
         lastUpdateTime: new Date(),
       });
+
+      // 通知调度器完成
+      this.env.speakScheduler.completeSpeaking(this.config.agentId);
+
     } catch (error) {
       // 发生错误时更新状态
       await this.updateMessage(initialMessage.id, {
         status: "error",
         lastUpdateTime: new Date(),
       });
+
+      // 通知调度器完成(即使是错误也要通知,以便释放说话状态)
+      this.env.speakScheduler.completeSpeaking(this.config.agentId);
+      
       throw error;
     }
+
     return (await messageService.getMessage(
       initialMessage.id
     )) as NormalMessage;

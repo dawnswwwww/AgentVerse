@@ -7,7 +7,7 @@ import { useDiscussionMembers } from "@/hooks/useDiscussionMembers";
 
 interface UseDiscussionControlProps {
   status: "active" | "paused" | "completed";
-  onSendMessage: (params: {
+  onSendMessage?: (params: {
     content: string;
     agentId: string;
     type?: AgentMessage["type"];
@@ -15,7 +15,7 @@ interface UseDiscussionControlProps {
   }) => Promise<AgentMessage | undefined>;
 }
 
-export function useDiscussionControl({ status, onSendMessage }: UseDiscussionControlProps) {
+export function useDiscussionControl({ status }: UseDiscussionControlProps) {
   const [showSettings, setShowSettings] = useState(false);
   const { data: settings, set: setSettings } = useProxyBeanState(
     discussionControlService.store,
@@ -49,16 +49,6 @@ export function useDiscussionControl({ status, onSendMessage }: UseDiscussionCon
   }, []);
 
   useEffect(() => {
-    return discussionControlService.onRequestSendMessage$.listen((message) => {
-      onSendMessage({
-        content: message.content,
-        agentId: message.agentId,
-        type: message.type,
-      });
-    });
-  }, [onSendMessage]);
-
-  useEffect(() => {
     return typingIndicatorService.onIndicatorsChange$.listen(setIndicators);
   }, []);
 
@@ -73,7 +63,7 @@ export function useDiscussionControl({ status, onSendMessage }: UseDiscussionCon
   }, []);
 
   const handleStatusChange = (isActive: boolean) => {
-    if (isActive) {
+    if (!isActive) {
       discussionControlService.pause();
     } else {
       discussionControlService.run();

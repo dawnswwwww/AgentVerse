@@ -1,19 +1,18 @@
 import { Button } from "@/components/ui/button";
+import { UI_PERSIST_KEYS, createUIPersistOptions } from "@/config/ui-persist";
 import { useDiscussionMembers } from "@/hooks/useDiscussionMembers";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import { cn } from "@/lib/utils";
-import { AgentMessage } from "@/types/discussion";
+import { agentListResource } from "@/resources";
+import { ITypingIndicator } from "@/services/typing-indicator.service";
 import { PauseCircle, PlayCircle } from "lucide-react";
 import { useCallback, useMemo } from "react";
-import { ClearMessagesButton } from "./clear-messages-button";
-import { ITypingIndicator } from "@/services/typing-indicator.service";
 import { TypingIndicator } from "../../chat/typing-indicator";
-import { agentListResource } from "@/resources";
 import { MemberToggleButton } from "../member/member-toggle-button";
 import { DiscussionSettingsButton } from "../settings/discussion-settings-button";
 import { DiscussionSettingsPanel } from "../settings/discussion-settings-panel";
+import { ClearMessagesButton } from "./clear-messages-button";
 import { useDiscussionControl } from "./use-discussion-control";
-import { UI_PERSIST_KEYS, createUIPersistOptions } from "@/config/ui-persist";
-import { usePersistedState } from "@/hooks/usePersistedState";
 
 // 控制按钮组件
 function ControlButton({ isActive, onClick }: { isActive: boolean; onClick: () => void }) {
@@ -140,19 +139,12 @@ function ActionButtons({
 
 interface DiscussionControllerProps {
   status: "active" | "paused" | "completed";
-  onSendMessage: (params: {
-    content: string;
-    agentId: string;
-    type?: AgentMessage["type"];
-    replyTo?: string;
-  }) => Promise<AgentMessage | undefined>;
   onToggleMembers?: () => void;
   enableSettings?: boolean;
 }
 
 export function DiscussionController({
   status,
-  onSendMessage,
   onToggleMembers,
   enableSettings = true,
 }: DiscussionControllerProps) {
@@ -162,7 +154,7 @@ export function DiscussionController({
     indicators,
     messageCount,
     handleStatusChange,
-  } = useDiscussionControl({ status, onSendMessage });
+  } = useDiscussionControl({ status });
 
   // 直接使用 usePersistedState，配合工具函数
   const [showSettings, setShowSettings] = usePersistedState(
@@ -197,7 +189,7 @@ export function DiscussionController({
           <div className="flex items-center gap-3">
             <ControlButton 
               isActive={isActive} 
-              onClick={() => handleStatusChange(isActive)} 
+              onClick={() => handleStatusChange(!isActive)} 
             />
             <StatusIndicator 
               isActive={isActive}

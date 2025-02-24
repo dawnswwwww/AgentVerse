@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { MobileActionSheet } from "./mobile-action-sheet";
+import { useDiscussionControl } from "@/components/discussion/control/use-discussion-control";
 
 interface MobileHeaderProps {
   title?: string;
@@ -34,10 +35,11 @@ export function MobileHeader({
   const [showActions, setShowActions] = useState(false);
   const isActive = status === "active";
   const { members } = useDiscussionMembers();
+  const { handleStatusChange } = useDiscussionControl({ status });
 
-  const handleStatusChange = () => {
-    const newStatus = isActive ? "paused" : "active";
-    onStatusChange(newStatus);
+  const toggleStatus = () => {
+    handleStatusChange(!isActive);
+    onStatusChange(isActive ? "paused" : "active");
   };
 
   return (
@@ -67,7 +69,7 @@ export function MobileHeader({
               variant={isActive ? "destructive" : "default"}
               size="icon"
               className="h-8 w-8"
-              onClick={handleStatusChange}
+              onClick={toggleStatus}
             >
               {isActive ? (
                 <PauseCircle className="h-5 w-5" />

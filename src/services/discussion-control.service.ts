@@ -55,9 +55,6 @@ export class DiscussionControlService {
     topic: "",
   });
 
-  onRequestSendMessage$ = new RxEvent<
-    Pick<NormalMessage, "agentId" | "content" | "type">
-  >();
   onError$ = new RxEvent<Error>();
   onCurrentDiscussionIdChange$ = new RxEvent<string | null>();
 
@@ -290,13 +287,14 @@ export class DiscussionControlService {
     // 1. 设置恢复状态
     this.isPausedBean.set(false);
 
-    // 2. 恢复所有 agents
+    // 2. 恢复调度器
+    this.env.speakScheduler.setPaused(false);
+    this.env.speakScheduler.resetCounter();
+
+    // 3. 恢复所有 agents
     for (const agent of this.agents.values()) {
       agent.resume();
     }
-
-    // 3. 恢复调度器
-    this.env.speakScheduler.setPaused(false);
 
     // 4. 发送讨论恢复事件
     this.env.eventBus.emit(DiscussionKeys.Events.discussionResume, null);
@@ -438,22 +436,59 @@ export class DiscussionControlService {
   // 恢复已有讨论
   private async resumeExistingDiscussion(): Promise<void> {
     const messages = this.messagesBean.get();
-    if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
+    const lastMessage = messages[messages.length - 1];
 
-      // 1. 恢复讨论级资源
+    if (lastMessage) {
+      // 1. 初始化讨论级资源
       await this.initializeDiscussion(this.topicBean.get());
 
       // 2. 恢复运行时状态
-      this.resume();
+      await this.resumeAndWaitReady();
 
-      // 3. 重放最后一条消息
-      console.log(
-        "[DiscussionControl] Resuming discussion with last message:",
-        lastMessage
-      );
-      this.env.eventBus.emit(DiscussionKeys.Events.message, lastMessage);
+      // 3. 重放最后一条消息以触发响应
+      if (lastMessage.type === 'text') {
+        // 延迟一小段时间确保所有状态都已经准备就绪
+        await new Promise(resolve => setTimeout(resolve, 100));
+        // 重放消息
+        this.onMessage(lastMessage);
+        console.log("[DiscussionControl] Replayed last message:", lastMessage);
+      }
     }
+  }
+
+  // 等待所有组件就绪
+  private async resumeAndWaitReady(): Promise<void> {
+    // 创建所有 agent 就绪的 Promise 数组
+    const agentReadyPromises = Array.from(this.agents.values()).map(
+      agent => new Promise<void>(resolve => {
+        // 监听 agent 的状态变化
+        const off = agent.onStateChange$.listen(state => {
+          if (!state.isPaused && !state.isThinking) {
+            off();
+            resolve();
+          }
+        });
+      })
+    );
+
+    // 创建一个 Promise 来等待调度器就绪
+    const schedulerReadyPromise = new Promise<void>(resolve => {
+      const off = this.env.speakScheduler.isPausedBean.$.subscribe(isPaused => {
+        if (!isPaused) {
+          off.unsubscribe();
+          resolve();
+        }
+      });
+    });
+
+    // 先恢复状态
+    this.resume();
+
+    // 等待所有组件就绪
+    await Promise.all([
+      ...agentReadyPromises,
+      schedulerReadyPromise
+    ]);
   }
 
   // 开始新讨论

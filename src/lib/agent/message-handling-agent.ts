@@ -82,7 +82,7 @@ export abstract class MessageHandlingAgent<
 
       if (!message) {
         this.setState({ isThinking: false } as Partial<S>);
-        return;
+        return;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
       }
       this.state.lastSpeakTime =
         message.timestamp instanceof Date
@@ -91,8 +91,13 @@ export abstract class MessageHandlingAgent<
       this.setState({ isThinking: false } as Partial<S>);
       this.env.eventBus.emit(DiscussionKeys.Events.message, message);
       this.onDidSendMessage(message);
+      
+      // 通知调度器说话完成
+      this.env.speakScheduler.completeSpeaking(this.config.agentId);
     } catch (error) {
       this.setState({ isThinking: false } as Partial<S>);
+      // 出错时也要通知调度器
+      this.env.speakScheduler.completeSpeaking(this.config.agentId);
       throw error;
     }
   }
@@ -224,32 +229,23 @@ export abstract class MessageHandlingAgent<
   }
 
   protected getSpeakReason(message: NormalMessage): SpeakReason {
-    const isMentioned = this.checkIfMentioned(
-      message.content,
-      this.config.name
-    );
-
-    if (isMentioned) {
-      return {
-        type: "mentioned",
-        description: "被直接提及",
-        factors: {
-          isModerator: this.config.role === "moderator",
-          isContextRelevant: 1,
-        },
-      };
-    }
+    const isMentioned = this.checkIfMentioned(message.content, this.config.name);
+    const timeSinceLastSpeak = this.state.lastSpeakTime
+      ? Date.now() - (this.state.lastSpeakTime instanceof Date
+          ? this.state.lastSpeakTime.getTime()
+          : this.state.lastSpeakTime)
+      : Infinity;
 
     return {
-      type: "auto_reply",
-      description: "自动回复",
+      type: isMentioned ? "mentioned" : "auto_reply",
+      description: isMentioned
+        ? "Agent was mentioned in the message"
+        : "Auto reply based on context",
       factors: {
         isModerator: this.config.role === "moderator",
-        isContextRelevant: 0.5,
-        timeSinceLastSpeak: this.state.lastSpeakTime
-          ? Date.now() - this.state.lastSpeakTime.getTime()
-          : Infinity,
-      },
+        timeSinceLastSpeak,
+        // TODO: 可以添加更多因素，如上下文相关性评分等
+      }
     };
   }
 
@@ -297,14 +293,6 @@ export abstract class MessageHandlingAgent<
 
     // 如果正在思考，不要回复
     if (this.state.isThinking) {
-      return false;
-    }
-
-    // 检查是否有人在说话
-    const currentSpeaker = this.env.stateBus.get(
-      DiscussionKeys.States.speaking
-    );
-    if (currentSpeaker) {
       return false;
     }
 

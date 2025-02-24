@@ -19,9 +19,9 @@ export const DiscussionKeys = {
 export class DiscussionEnvBus extends EnvironmentBus {
   speakScheduler: SpeakScheduler;
 
-  constructor(speakRequestTimeout?: number) {
+  constructor() {
     super();
-    this.speakScheduler = new SpeakScheduler(speakRequestTimeout);
+    this.speakScheduler = new SpeakScheduler();
   }
 
   // 提交发言请求

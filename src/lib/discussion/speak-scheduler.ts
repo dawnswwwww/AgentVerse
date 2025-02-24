@@ -22,68 +22,122 @@ export interface SpeakReason {
   };
 }
 
+// 说话状态
+export type SpeakingState = {
+  agentId: string | null;
+  startTime: Date | null;
+  timeoutId: NodeJS.Timeout | null;
+};
+
 export class SpeakScheduler {
   private requests: SpeakRequest[] = [];
-  private timer: NodeJS.Timeout | null = null;
-  private collectionTimeout: number = 500;
-  // private messageCounter: number = 0;
+  private readonly MAX_MESSAGES = 20; // 最大消息数限制
+  private readonly SPEAK_TIMEOUT = 30000; // 说话超时时间，30秒
+
+  // 状态管理
   private store = createNestedBean({
     messageCounter: 0,
+    speaking: {
+      agentId: null as string | null,
+      startTime: null as Date | null,
+      timeoutId: null as NodeJS.Timeout | null
+    } as SpeakingState,
+    isPaused: false
   });
+
+  // 代理访问器
   messageCounterBean = createProxyBean(this.store, "messageCounter");
-  private readonly MAX_MESSAGES = 20; // 最大消息数限制
+  speakingStateBean = createProxyBean(this.store, "speaking");
+  isPausedBean = createProxyBean(this.store, "isPaused");
 
-  // 新增事件
-  public onMessageProcessed$ = new RxEvent<number>(); // 发送当前计数
+  // 事件通知
+  public onMessageProcessed$ = new RxEvent<number>();
   public onLimitReached$ = new RxEvent<void>();
+  public onSpeakTimeout$ = new RxEvent<string>(); // 发送超时的 agentId
 
-  constructor(collectionTimeout?: number) {
-    if (collectionTimeout) {
-      this.collectionTimeout = collectionTimeout;
+  constructor() {
+    // 监听说话状态变化
+    this.speakingStateBean.$.subscribe((state) => {
+      if (state.agentId) {
+        this.setupSpeakTimeout(state.agentId);
+      }
+    });
+  }
+
+  public setPaused(paused: boolean) {
+    this.isPausedBean.set(paused);
+    if (paused) {
+      // 暂停时清空请求队列
+      this.requests = [];
+      // 清除当前说话状态
+      this.clearSpeakingState();
     }
   }
 
-  getRoundLimit() {
+  public getRoundLimit() {
     return this.MAX_MESSAGES;
   }
-  
+
+  public getCurrentSpeaker(): string | null {
+    return this.speakingStateBean.get().agentId;
+  }
 
   public submit(request: SpeakRequest): void {
     this.requests.push(request);
-    this.resetTimer();
+    this.processNextRequest();
+  }
+
+  public completeSpeaking(agentId: string): void {
+    const currentState = this.speakingStateBean.get();
+    if (currentState.agentId === agentId) {
+      this.clearSpeakingState();
+      this.processNextRequest();
+    }
   }
 
   public clear(): void {
     this.requests = [];
     this.messageCounterBean.set(0);
-    if (this.timer) {
-      clearTimeout(this.timer);
-      this.timer = null;
-    }
+    this.clearSpeakingState();
   }
 
-  private resetTimer(): void {
-    if (this.timer) {
-      clearTimeout(this.timer);
+  private async processNextRequest(): Promise<void> {
+    // 如果讨论已暂停，不处理请求
+    if (this.isPausedBean.get()) {
+      return;
     }
 
-    this.timer = setTimeout(() => {
-      this.processRequests();
-    }, this.collectionTimeout);
-  }
+    // 如果当前有人在说话，不处理
+    if (this.speakingStateBean.get().agentId) {
+      return;
+    }
 
-  private async processRequests(): Promise<void> {
-    if (this.requests.length === 0) return;
-
-    const nextSpeaker = this.selectNextSpeaker();
-    if (!nextSpeaker) return;
+    // 如果没有请求，不处理
+    if (this.requests.length === 0) {
+      return;
+    }
 
     // 检查是否达到限制
     if (this.messageCounterBean.get() >= this.MAX_MESSAGES) {
       this.onLimitReached$.next();
-      this.messageCounterBean.set(0)
+      this.messageCounterBean.set(0);
       return;
     }
+
+    const nextSpeaker = this.selectNextSpeaker();
+    if (!nextSpeaker) return;
+
+    // 再次检查是否暂停（防止在处理过程中状态改变）
+    if (this.isPausedBean.get()) {
+      return;
+    }
+
+    // 设置说话状态
+    this.speakingStateBean.set({
+      agentId: nextSpeaker.agentId,
+      startTime: new Date(),
+      timeoutId: null
+    });
 
     // 清除被选中 agent 的所有其他请求
     this.requests = this.requests.filter(
@@ -97,7 +151,39 @@ export class SpeakScheduler {
       this.onMessageProcessed$.next(this.messageCounterBean.get());
     } catch (error) {
       console.error("Error executing speak callback:", error);
+      this.clearSpeakingState();
     }
+  }
+
+  private setupSpeakTimeout(agentId: string): void {
+    const currentState = this.speakingStateBean.get();
+    if (currentState.timeoutId) {
+      clearTimeout(currentState.timeoutId);
+    }
+
+    const timeoutId = setTimeout(() => {
+      this.onSpeakTimeout$.next(agentId);
+      this.clearSpeakingState();
+      this.processNextRequest();
+    }, this.SPEAK_TIMEOUT);
+
+    this.speakingStateBean.set({
+      ...currentState,
+      timeoutId
+    });
+  }
+
+  private clearSpeakingState(): void {
+    const currentState = this.speakingStateBean.get();
+    if (currentState.timeoutId) {
+      clearTimeout(currentState.timeoutId);
+    }
+    
+    this.speakingStateBean.set({
+      agentId: null,
+      startTime: null,
+      timeoutId: null
+    });
   }
 
   private selectNextSpeaker(): SpeakRequest | null {
@@ -116,7 +202,7 @@ export class SpeakScheduler {
 
     // mention类型给予显著更高的优先级
     if (request.reason.type === "mentioned") {
-      score += 100; // 给予很高的基础分数
+      score += 100;
     }
 
     // 时间因素
@@ -140,7 +226,6 @@ export class SpeakScheduler {
     return score;
   }
 
-  // 添加重置计数器的方法
   public resetCounter(): void {
     this.messageCounterBean.set(0);
     this.onMessageProcessed$.next(this.messageCounterBean.get());

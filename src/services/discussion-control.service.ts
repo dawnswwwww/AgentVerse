@@ -273,15 +273,17 @@ export class DiscussionControlService {
       agent.pause();
     }
 
-    // 3. 发送讨论暂停事件
+    // 3. 暂停调度器
+    this.env.speakScheduler.setPaused(true);
+
+    // 4. 发送讨论暂停事件
     this.env.eventBus.emit(DiscussionKeys.Events.discussionPause, null);
 
-    // 4. 清理运行时资源
+    // 5. 清理运行时资源
     this.cleanupRuntime();
 
-    // 重置计数器
-    const scheduler = this.env.speakScheduler;
-    scheduler.resetCounter();
+    // 6. 重置计数器
+    this.env.speakScheduler.resetCounter();
   }
 
   resume() {
@@ -293,7 +295,10 @@ export class DiscussionControlService {
       agent.resume();
     }
 
-    // 3. 发送讨论恢复事件
+    // 3. 恢复调度器
+    this.env.speakScheduler.setPaused(false);
+
+    // 4. 发送讨论恢复事件
     this.env.eventBus.emit(DiscussionKeys.Events.discussionResume, null);
   }
 

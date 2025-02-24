@@ -11,9 +11,9 @@ import { MobileBottomBar } from "@/components/layout/mobile-bottom-bar";
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { ResponsiveContainer } from "@/components/layout/responsive-container";
 import { useSettingsDialog } from "@/components/settings/settings-dialog";
+import { Button } from "@/components/ui/button";
 import { ModalProvider } from "@/components/ui/modal";
 import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
 import { UI_PERSIST_KEYS } from "@/config/ui-persist";
 import { useBreakpointContext } from "@/contexts/breakpoint-context";
 import { useAgents } from "@/hooks/useAgents";
@@ -23,9 +23,9 @@ import { usePersistedState } from "@/hooks/usePersistedState";
 import { useViewportHeight } from "@/hooks/useViewportHeight";
 import { cn } from "@/lib/utils";
 import { discussionControlService } from "@/services/discussion-control.service";
-import { Discussion, NormalMessage } from "@/types/discussion";
+import { Discussion } from "@/types/discussion";
 import { useEffect, useState } from "react";
-import { useBeanState } from "rx-nested-bean";
+import { useProxyBeanState } from "rx-nested-bean";
 
 // 场景类型
 type Scene = "discussions" | "chat" | "agents" | "settings";
@@ -46,11 +46,13 @@ function AppContent() {
     }
   );
   const showDesktopMembers = isDesktop && showMembersForDesktop;
-  const { data: currentDiscussionId } = useBeanState(
-    discussionControlService.currentDiscussionIdBean
+  const { data: currentDiscussionId } = useProxyBeanState(
+    discussionControlService.store,
+    "currentDiscussionId"
   );
-  const { data: isPaused, set: setIsPaused } = useBeanState(
-    discussionControlService.isPausedBean
+  const { data: isPaused, set: setIsPaused } = useProxyBeanState(
+    discussionControlService.store,
+    "isPaused"
   );
   const status = isPaused ? "paused" : "active";
   const { height } = useViewportHeight();
@@ -82,16 +84,10 @@ function AppContent() {
       agentId,
       type: "text",
     });
-    if (messages.length === 0) {
-      discussionControlService.setTopic(content);
-    }
     if (agentMessage) discussionControlService.onMessage(agentMessage);
   };
 
   useEffect(() => {
-    if (messages.length > 0) {
-      discussionControlService.setTopic((messages[0] as NormalMessage).content);
-    }
     discussionControlService.setMessages(messages);
   }, [messages]);
 

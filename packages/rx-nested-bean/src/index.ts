@@ -680,11 +680,11 @@ type PathImpl<T, Key extends keyof T> = Key extends string
     : Key
   : never;
 
-type Path<T> = PathImpl<T, keyof T> | keyof T;
+export type BeanPath<T> = PathImpl<T, keyof T> | keyof T;
 
-type PathValue<T, P extends Path<T>> = P extends `${infer Key}.${infer Rest}`
+type PathValue<T, P extends BeanPath<T>> = P extends `${infer Key}.${infer Rest}`
   ? Key extends keyof T
-    ? Rest extends Path<T[Key]>
+    ? Rest extends BeanPath<T[Key]>
       ? PathValue<T[Key], Rest>
       : never
     : never
@@ -694,7 +694,7 @@ type PathValue<T, P extends Path<T>> = P extends `${infer Key}.${infer Rest}`
 
 export const createProxyBean = <
   T extends Record<string, any>,
-  P extends Path<T>
+  P extends BeanPath<T>
 >(
   bean: INestedBean<T>,
   path: P
@@ -707,7 +707,7 @@ export const createProxyBean = <
 
 export const useProxyBeanState = <
   T extends Record<string, any>,
-  P extends Path<T>
+  P extends BeanPath<T>
 >(
   bean: INestedBean<T>,
   path: P

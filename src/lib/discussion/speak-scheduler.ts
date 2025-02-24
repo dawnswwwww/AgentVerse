@@ -1,6 +1,6 @@
-import { AgentMessage } from "@/types/discussion";
 import { RxEvent } from "@/lib/rx-event";
-import { createNestedBean, createProxyBean } from "packages/rx-nested-bean/src";
+import { AgentMessage } from "@/types/discussion";
+import { createNestedBean, createProxyBean } from "rx-nested-bean";
 
 export interface SpeakRequest {
   agentId: string;
@@ -115,7 +115,6 @@ export class SpeakScheduler {
     if (this.isPausedBean.get()) {
       return;
     }
-    console.log("[SpeakScheduler] processNextRequest", this.requests);
 
     // 如果当前有人在说话，不处理
     if (this.speakingStateBean.get().agentId) {

@@ -8,6 +8,7 @@ export enum DiscussionErrorType {
   NO_MEMBERS = "NO_MEMBERS",
   NO_TOPIC = "NO_TOPIC",
   AGENT_SELECTION_FAILED = "AGENT_SELECTION_FAILED",
+  NO_MESSAGES = "NO_MESSAGES",
 }
 
 export class DiscussionError extends Error {

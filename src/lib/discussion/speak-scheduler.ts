@@ -58,7 +58,8 @@ export class SpeakScheduler {
   constructor() {
     // 监听说话状态变化
     this.speakingStateBean.$.subscribe((state) => {
-      if (state.agentId) {
+      // 只在agentId变化且不为null时设置超时
+      if (state.agentId && !state.timeoutId) {
         this.setupSpeakTimeout(state.agentId);
       }
     });
@@ -156,21 +157,20 @@ export class SpeakScheduler {
   }
 
   private setupSpeakTimeout(agentId: string): void {
-    const currentState = this.speakingStateBean.get();
-    if (currentState.timeoutId) {
-      clearTimeout(currentState.timeoutId);
-    }
-
     const timeoutId = setTimeout(() => {
       this.onSpeakTimeout$.next(agentId);
       this.clearSpeakingState();
       this.processNextRequest();
     }, this.SPEAK_TIMEOUT);
 
-    this.speakingStateBean.set({
-      ...currentState,
-      timeoutId
-    });
+    // 直接更新timeoutId，不触发完整的状态更新
+    const currentState = this.speakingStateBean.get();
+    if (currentState.agentId === agentId) {
+      this.speakingStateBean.set({
+        ...currentState,
+        timeoutId
+      });
+    }
   }
 
   private clearSpeakingState(): void {
@@ -189,39 +189,58 @@ export class SpeakScheduler {
   private selectNextSpeaker(): SpeakRequest | null {
     if (this.requests.length === 0) return null;
 
-    return this.requests.reduce((highest, current) => {
-      const currentScore = this.calculateScore(current);
-      const highestScore = this.calculateScore(highest);
+    // 计算所有请求的得分
+    const scoredRequests = this.requests.map(request => ({
+      request,
+      score: this.calculateScore(request)
+    }));
 
-      return currentScore > highestScore ? current : highest;
-    });
+    // 按得分降序排序
+    scoredRequests.sort((a, b) => b.score - a.score);
+
+    // 返回得分最高的请求
+    return scoredRequests[0].request;
   }
 
   private calculateScore(request: SpeakRequest): number {
-    let score = request.priority;
+    const now = Date.now();
+    const { reason, timestamp } = request;
+    let score = 0;
 
-    // mention类型给予显著更高的优先级
-    if (request.reason.type === "mentioned") {
-      score += 100;
+    // 基础分数：根据请求类型
+    switch (reason.type) {
+      case "mentioned": 
+        score += 100; // 被提到的优先级最高
+        break;
+      case "follow_up":
+        score += 80;  // 跟进回复次优先
+        break;
+      case "auto_reply":
+        score += 50;  // 自动回复基础优先级
+        break;
+      default:
+        score += 30;
     }
 
-    // 时间因素
-    const timeWeight = 0.1;
-    const timeDiff = Date.now() - request.timestamp.getTime();
-    score += timeDiff * timeWeight;
-
-    // 其他因素
-    if (request.reason.factors) {
-      if (request.reason.factors.isModerator) {
-        score += 20;
-      }
-      if (request.reason.factors.isContextRelevant) {
-        score += request.reason.factors.isContextRelevant * 30;
-      }
-      if (request.reason.factors.timeSinceLastSpeak) {
-        score += Math.min(request.reason.factors.timeSinceLastSpeak / 1000, 50);
-      }
+    // 角色加权
+    if (reason.factors?.isModerator) {
+      score *= 1.5; // 主持人权重提升
     }
+
+    // 上下文相关性
+    if (reason.factors?.isContextRelevant) {
+      score += reason.factors.isContextRelevant * 30; // 相关性越高分数越高
+    }
+
+    // 时间衰减：距离上次发言时间越长，优先级越高
+    if (reason.factors?.timeSinceLastSpeak) {
+      const timeBonus = Math.min(reason.factors.timeSinceLastSpeak / 60000, 5) * 10; // 每分钟加10分，最多5分钟
+      score += timeBonus;
+    }
+
+    // 请求时间衰减：等待时间越长，适当提升优先级
+    const waitTime = (now - timestamp.getTime()) / 1000; // 秒
+    score += Math.min(waitTime / 10, 20); // 每10秒加1分，最多加20分
 
     return score;
   }

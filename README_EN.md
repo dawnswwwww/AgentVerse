@@ -6,7 +6,7 @@ AgentVerse is an open-source AI agent ecosystem powered by leading AI models. It
 
 English | [简体中文](./README.md)
 
-![Demo Screenshot](./screenshots/demo.jpeg)
+![Demo Screenshot](./screenshots/demo2.jpeg)
 
 ## 🚀 Online Demo
 

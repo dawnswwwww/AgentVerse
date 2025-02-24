@@ -245,6 +245,71 @@ const capabilities: Capability[] = [
       });
     },
   },
+  {
+    name: "updateAgent",
+    description: `<capability>
+  <name>更新Agent信息</name>
+  <params>
+    <schema>
+      id: string          // Agent ID
+      name?: string       // 名称
+      role?: 'moderator' | 'participant'  // 角色
+      personality?: string  // 性格
+      expertise?: string[]  // 专长领域
+      prompt?: string      // 行为指导
+      avatar?: string      // 头像URL
+      bias?: string        // 偏好
+      responseStyle?: string // 回复风格
+    </schema>
+  </params>
+  <example>
+    {
+      "id": "agent-123",
+      "name": "产品经理",
+      "personality": "严谨理性",
+      "expertise": ["产品设计", "用户体验"]
+    }
+  </example>
+  <notes>
+    <note>id 字段必填</note>
+    <note>其他字段可选，仅更新提供的字段</note>
+  </notes>
+</capability>`,
+    execute: async (params) => {
+      // 验证必填字段
+      if (!params.id) {
+        throw new Error('id is required');
+      }
+
+      // 验证role的值
+      if (params.role && !['moderator', 'participant'].includes(params.role)) {
+        throw new Error('Invalid role value');
+      }
+
+      try {
+        // 更新Agent
+        const agent = await agentService.updateAgent(params.id, {
+          name: params.name,
+          role: params.role,
+          personality: params.personality,
+          expertise: params.expertise,
+          prompt: params.prompt,
+          avatar: params.avatar,
+          bias: params.bias,
+          responseStyle: params.responseStyle
+        });
+
+        // 重新加载Agent列表资源
+        await agentListResource.reload();
+        return agent;
+      } catch (error) {
+        if (error instanceof Error) {
+          throw new Error(`更新Agent失败: ${error.message}`);
+        }
+        throw error;
+      }
+    },
+  },
   ...dbCapabilities,
 ];
 

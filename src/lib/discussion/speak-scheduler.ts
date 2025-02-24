@@ -33,7 +33,7 @@ export type SpeakingState = {
 export class SpeakScheduler {
   private requests: SpeakRequest[] = [];
   private readonly MAX_MESSAGES = 20; // 最大消息数限制
-  private readonly SPEAK_TIMEOUT = 30000; // 说话超时时间，30秒
+  private readonly SPEAK_TIMEOUT = 300000; // 说话超时时间，300秒
 
   // 状态管理
   private store = createNestedBean({

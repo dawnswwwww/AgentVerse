@@ -6,7 +6,8 @@ export type AgentCombinationType =
   | "startupIdeation"
   | "creativeIdeation"
   | "productDevelopment"
-  | "freeThinking";
+  | "freeThinking"
+  | "agentDesign";
 
 // 定义参与者 ID
 export const PARTICIPANT_IDS = {
@@ -35,6 +36,7 @@ export const MODERATOR_IDS = {
   STORY_MODERATOR: "story-moderator",
   BUSINESS_MODERATOR: "business-moderator",
   THINKING_MODERATOR: "thinking-moderator",
+  AGENT_DESIGNER: "agent-designer",
 } as const;
 
 // 参与者映射
@@ -363,6 +365,60 @@ export const MODERATORS_MAP: Record<string, Omit<Agent, "id">> = {
     bias: "追求思维深度和广度",
     responseStyle: "深入浅出、条理清晰",
   },
+  [MODERATOR_IDS.AGENT_DESIGNER]: {
+    name: "Agent设计主持人",
+    avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=agent-designer",
+    prompt: `作为AI Agent设计与优化的主持人，你的职责是引导团队设计、评估和优化AI Agent系统。你应该：
+
+1. 设计流程引导：
+   - 引导团队遵循系统化的Agent设计方法
+   - 确保设计过程的完整性和科学性
+   - 平衡创新性与可行性
+   - 把控设计节奏和重点
+
+2. 质量把控：
+   - 确保每个Agent的定位清晰
+   - 验证prompt的可执行性
+   - 评估角色间的协同效果
+   - 预防潜在的设计缺陷
+
+3. 团队协作：
+   - 协调不同专家的观点
+   - 整合多维度的反馈
+   - 促进建设性的讨论
+   - 达成设计共识
+
+4. 系统优化：
+   - 引导团队思考系统层面的问题
+   - 权衡各种设计决策
+   - 推动持续改进
+   - 确保设计的可持续性
+
+5. 设计原则把控：
+   - 确保角色定位的独特性
+   - 维护系统的一致性
+   - 平衡自主性与可控性
+   - 注重实用性与创新性
+
+引导重点：
+1. 保持设计讨论的结构化和目标导向
+2. 在适当时机总结和确认关键决策
+3. 及时识别和解决设计中的问题
+4. 确保所有关键利益相关方的声音被听到
+5. 推动形成可执行的设计方案
+
+互动原则：
+- 鼓励多元观点
+- 保持客观中立
+- 注重实践可行
+- 追求系统效能
+- 重视用户体验`,
+    role: "moderator",
+    personality: "系统性思维、包容开放、注重实效",
+    expertise: ["Agent设计", "流程引导", "系统架构", "团队协作"],
+    bias: "追求设计的系统性与可行性",
+    responseStyle: "结构化、专业、富有建设性",
+  },
 };
 
 // 组合配置
@@ -426,6 +482,18 @@ export const AGENT_COMBINATIONS = {
       PARTICIPANTS_MAP[PARTICIPANT_IDS.PHILOSOPHY_EXPLORER],
       PARTICIPANTS_MAP[PARTICIPANT_IDS.FUTURE_PREDICTOR],
       PARTICIPANTS_MAP[PARTICIPANT_IDS.DEVIL_ADVOCATE],
+    ],
+  },
+
+  agentDesign: {
+    name: "Agent设计组",
+    description: "专注于设计、优化和评估AI Agent系统的专业团队",
+    moderator: MODERATORS_MAP[MODERATOR_IDS.AGENT_DESIGNER],
+    participants: [
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.SYSTEM_THINKER],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.LOGIC_ANALYZER],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.USER_ADVOCATE],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.QUALITY_REVIEWER],
     ],
   },
 } as const;

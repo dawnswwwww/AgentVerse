@@ -1,7 +1,7 @@
 import { discussionControlService } from "@/services/discussion-control.service";
 import { Agent } from "@/types/agent";
 import { useEffect, useMemo, useState } from "react";
-import { useBeanState } from "rx-nested-bean";
+import { useProxyBeanState } from "rx-nested-bean";
 import { useAgents } from "./useAgents";
 import { useDiscussionMembers } from "./useDiscussionMembers";
 
@@ -33,8 +33,9 @@ const SELF_AGENT: Agent = {
 export function useMemberSelection(isFirstMessage: boolean = false) {
   const { agents } = useAgents();
   const { members } = useDiscussionMembers();
-  const { data: currentDiscussionId } = useBeanState(
-    discussionControlService.currentDiscussionIdBean
+  const { data: currentDiscussionId } = useProxyBeanState(
+    discussionControlService.store,
+    "currentDiscussionId"
   );
 
   // 可用成员列表，添加"我"的选项

@@ -1,5 +1,5 @@
 import { DEFAULT_SETTINGS } from "@/config/settings";
-import { BaseAgent, ChatAgent } from "@/lib/agent";
+import { BaseAgent } from "@/lib/agent";
 import { CapabilityRegistry } from "@/lib/capabilities";
 import {
   DiscussionEnvBus,
@@ -7,8 +7,9 @@ import {
 } from "@/lib/discussion/discussion-env";
 import { RxEvent } from "@/lib/rx-event";
 import { WithState } from "@/lib/with-event";
-import { agentListResource, messagesResource } from "@/resources";
+import { messagesResource } from "@/resources";
 import { discussionCapabilitiesResource } from "@/resources/discussion-capabilities.resource";
+import { AgentManager } from "@/services/agent/agent-manager";
 import { messageService } from "@/services/message.service";
 import { typingIndicatorService } from "@/services/typing-indicator.service";
 import {
@@ -57,7 +58,7 @@ export class DiscussionControlService extends WithState<DiscussionControlState> 
   onCurrentDiscussionIdChange$ = new RxEvent<string | null>();
 
   private timeoutManager = new TimeoutManager();
-  private agents: Map<string, BaseAgent> = new Map();
+  private agentManager: AgentManager;
   env: DiscussionEnvBus;
 
   // 生命周期管理
@@ -77,6 +78,7 @@ export class DiscussionControlService extends WithState<DiscussionControlState> 
       topic: "",
     });
     this.env = new DiscussionEnvBus();
+    this.agentManager = new AgentManager(this.env);
     this.initializeService();
   }
 
@@ -90,49 +92,10 @@ export class DiscussionControlService extends WithState<DiscussionControlState> 
     // 2. 监听成员变化
     const membersSub = this.onStateChange$.listen(([prev, current]) => {
       if (prev.members !== current.members) {
-        this.syncAgentsWithMembers(current.members);
+        this.agentManager.syncAgents(current.members);
       }
     });
     this.serviceCleanupHandlers.push(() => membersSub());
-  }
-
-  private syncAgentsWithMembers(members: DiscussionMember[]) {
-    // 移除不在 members 中的 agents
-    for (const [agentId, agent] of this.agents) {
-      if (!members.find((m) => m.agentId === agentId)) {
-        agent.leaveEnv();
-        this.agents.delete(agentId);
-      }
-    }
-
-    // 更新或添加 agents
-    for (const member of members) {
-      const agentData = agentListResource
-        .read()
-        .data.find((agent) => agent.id === member.agentId)!;
-      const existingAgent = this.agents.get(member.agentId);
-      if (existingAgent) {
-        // 更新现有 agent 的配置
-        existingAgent.updateConfig({
-          ...agentData,
-        });
-        // 更新状态
-        existingAgent.updateState({
-          autoReply: member.isAutoReply,
-        });
-      } else {
-        // 创建新的 agent
-        const agent = new ChatAgent(
-          {
-            ...agentData,
-            agentId: member.agentId,
-          },
-          { autoReply: member.isAutoReply }
-        );
-        this.agents.set(member.agentId, agent);
-        agent.enterEnv(this.env);
-      }
-    }
   }
 
   getCurrentDiscussionId(): string | null {
@@ -167,17 +130,14 @@ export class DiscussionControlService extends WithState<DiscussionControlState> 
     this.env.speakScheduler.resetCounter();
 
     // 4. 清理所有代理状态
-    for (const agent of this.agents.values()) {
-      agent.pause();
-      // agent.resetState();
-    }
+    this.agentManager.pauseAll();
 
     // 5. 重置讨论相关状态
     this.setState({
       currentRound: 0,
       currentSpeakerIndex: -1,
+      isPaused: true
     });
-    this.setState({ isPaused: true });
 
     // 6. 执行讨论级清理
     this.discussionCleanupHandlers.forEach((cleanup) => cleanup());
@@ -244,9 +204,7 @@ export class DiscussionControlService extends WithState<DiscussionControlState> 
     this.setState({ isPaused: true });
 
     // 2. 暂停所有 agents
-    for (const agent of this.agents.values()) {
-      agent.pause();
-    }
+    this.agentManager.pauseAll();
 
     // 3. 暂停调度器
     this.env.speakScheduler.setPaused(true);
@@ -270,9 +228,7 @@ export class DiscussionControlService extends WithState<DiscussionControlState> 
     this.env.speakScheduler.resetCounter();
 
     // 3. 恢复所有 agents
-    for (const agent of this.agents.values()) {
-      agent.resume();
-    }
+    this.agentManager.resumeAll();
 
     // 4. 发送讨论恢复事件
     this.env.eventBus.emit(DiscussionKeys.Events.discussionResume, null);
@@ -303,10 +259,7 @@ export class DiscussionControlService extends WithState<DiscussionControlState> 
   // 完全销毁服务
   destroy() {
     // 1. 清理所有代理
-    for (const agent of this.agents.values()) {
-      agent.leaveEnv();
-    }
-    this.agents.clear();
+    this.agentManager.cleanup();
 
     // 2. 清理环境
     this.env.destroy();
@@ -355,7 +308,7 @@ export class DiscussionControlService extends WithState<DiscussionControlState> 
   }
 
   getAgent(agentId: string): BaseAgent | undefined {
-    return this.agents.get(agentId);
+    return this.agentManager.getAgent(agentId);
   }
 
   // 恢复已有讨论
@@ -383,7 +336,7 @@ export class DiscussionControlService extends WithState<DiscussionControlState> 
   // 等待所有组件就绪
   private async resumeAndWaitReady(): Promise<void> {
     // 创建所有 agent 就绪的 Promise 数组
-    const agentReadyPromises = Array.from(this.agents.values()).map(
+    const agentReadyPromises = this.agentManager.getAllAgents().map(
       (agent) =>
         new Promise<void>((resolve) => {
           // 监听 agent 的状态变化

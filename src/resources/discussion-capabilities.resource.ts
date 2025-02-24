@@ -1,7 +1,7 @@
-import { Capability } from "@/lib/capabilities";
-import { createResource } from "@/lib/resource";
 import { eventBus } from "@/core/env";
 import { USER_SELECT } from "@/core/events";
+import { Capability } from "@/lib/capabilities";
+import { createResource } from "@/lib/resource";
 import {
   agentListResource,
   discussionMembersResource
@@ -9,7 +9,6 @@ import {
 import { agentService } from "@/services/agent.service";
 import { discussionControlService } from "@/services/discussion-control.service";
 import { discussionMemberService } from "@/services/discussion-member.service";
-import { dbCapabilities } from "./db-capabilities";
 
 const capabilities: Capability[] = [
   {
@@ -310,7 +309,7 @@ const capabilities: Capability[] = [
       }
     },
   },
-  ...dbCapabilities,
+  // ...dbCapabilities,
 ];
 
 export const discussionCapabilitiesResource = createResource(() =>

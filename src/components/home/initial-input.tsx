@@ -27,11 +27,16 @@ export function InitialInput({
   useEffect(() => {
     if (textareaRef.current) {
       // 重置高度以获取正确的scrollHeight
-      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = '56px';
       
       // 设置新高度
-      const newHeight = Math.min(Math.max(56, textareaRef.current.scrollHeight), 150);
-      textareaRef.current.style.height = `${newHeight}px`;
+      const scrollHeight = textareaRef.current.scrollHeight;
+      const newHeight = Math.min(Math.max(56, scrollHeight), 150);
+      
+      // 只有当高度真正需要改变时才更新
+      if (newHeight !== 56 || input === '') {
+        textareaRef.current.style.height = `${newHeight}px`;
+      }
       
       // 检测是否为多行
       setIsMultiline(newHeight > 56);
@@ -124,8 +129,12 @@ export function InitialInput({
               "placeholder:text-muted-foreground/60",
               "focus:outline-none focus:ring-2 focus:ring-purple-500/20",
               "transition-all duration-300",
-              "scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-muted-foreground/20 hover:scrollbar-thumb-muted-foreground/30"
+              "scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-muted-foreground/20 hover:scrollbar-thumb-muted-foreground/30",
+              "overflow-hidden"
             )}
+            style={{
+              height: '56px'
+            }}
           />
           <motion.div 
             ref={iconRef}

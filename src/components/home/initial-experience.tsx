@@ -232,8 +232,10 @@ export function InitialExperience({
   return (
     <motion.div
       className={cn(
-        "relative flex flex-col min-h-full",
+        "relative flex flex-col",
         "py-8 md:py-12",
+        "overflow-y-auto",
+        "h-[100vh]",
         className
       )}
       initial="initial"
@@ -243,9 +245,9 @@ export function InitialExperience({
         animate: { opacity: 1, transition: { staggerChildren: 0.12 } }
       }}
     >
-      {/* 背景装饰 - 简化为单层渐变 */}
+      {/* 背景装饰 */}
       <motion.div
-        className="absolute inset-0 pointer-events-none overflow-hidden"
+        className="fixed inset-0 pointer-events-none overflow-hidden"
         variants={{
           initial: { opacity: 0 },
           animate: { opacity: 1 }
@@ -255,7 +257,10 @@ export function InitialExperience({
       </motion.div>
 
       {/* 主要内容区域 */}
-      <div className="relative flex flex-col items-center w-full mx-auto">
+      <div className={cn(
+        "relative flex flex-col items-center w-full mx-auto",
+        "flex-1",
+      )}>
         {/* Logo 和标题区域 */}
         <motion.div
           className="mb-12 md:mb-16 text-center"

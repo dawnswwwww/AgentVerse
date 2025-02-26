@@ -1,6 +1,9 @@
+import { InitialExperience } from "@/components/home/initial-experience";
+import { AGENT_COMBINATIONS, AgentCombinationType } from "@/config/agents";
 import { DEFAULT_SCENARIOS } from "@/config/guide-scenarios";
 import { useDiscussionMembers } from "@/hooks/useDiscussionMembers";
 import { useDiscussions } from "@/hooks/useDiscussions";
+import { useViewportHeight } from "@/hooks/useViewportHeight";
 import { cn } from "@/lib/utils";
 import { discussionControlService } from "@/services/discussion-control.service";
 import { AgentMessage } from "@/types/discussion";
@@ -9,8 +12,7 @@ import { useEffect, useRef } from "react";
 import { ChatEmptyGuide } from "./chat-empty-guide";
 import { MessageList, MessageListRef } from "./message";
 import { MessageInput, MessageInputRef } from "./message-input";
-import { useViewportHeight } from "@/hooks/useViewportHeight";
-import { DiscussionSetupContainer } from "@/components/discussion/setup/discussion-setup-container";
+import { useAgents } from "@/hooks/useAgents";
 
 interface ChatAreaProps {
   messages: AgentMessage[];
@@ -22,6 +24,7 @@ interface ChatAreaProps {
   inputAreaClassName?: string;
   discussionStatus?: "active" | "paused" | "completed";
   onStartDiscussion?: () => void;
+  onInitialStateChange?: (isInitialState: boolean) => void;
 }
 
 export function ChatArea({
@@ -32,22 +35,163 @@ export function ChatArea({
   className,
   messageListClassName,
   inputAreaClassName,
+  onInitialStateChange,
 }: ChatAreaProps) {
   const { isKeyboardVisible } = useViewportHeight();
   const messageListRef = useRef<MessageListRef>(null);
   const messageInputRef = useRef<MessageInputRef>(null);
   const isFirstMessage = messages.length === 0;
   const { currentDiscussion } = useDiscussions();
-  const { members } = useDiscussionMembers();
+  const { members, addMembers } = useDiscussionMembers();
+  const { agents } = useAgents();
 
   useEffect(() => {
     discussionControlService.setMembers(members);
   }, [members]);
 
+  useEffect(() => {
+    const isInitialState = members.length === 0 && messages.length === 0;
+    onInitialStateChange?.(isInitialState);
+  }, [members.length, messages.length, onInitialStateChange]);
+
   const handleSendMessage = async (content: string, agentId: string) => {
-    await onSendMessage(content, agentId);
-    discussionControlService.run();
-    messageListRef.current?.scrollToBottom();
+    console.log(
+      `发送消息: ${content.slice(0, 30)}${
+        content.length > 30 ? "..." : ""
+      } (来自: ${agentId})`
+    );
+
+    try {
+      // 发送消息
+      await onSendMessage(content, agentId);
+      console.log("消息发送成功");
+
+      // 如果有成员，则尝试运行讨论控制服务
+      if (members.length > 0) {
+        console.log(`检测到 ${members.length} 个成员，启动讨论控制服务...`);
+        try {
+          await discussionControlService.run();
+          console.log("讨论控制服务运行成功");
+        } catch (error) {
+          console.error("讨论控制服务运行失败:", error);
+        }
+      } else {
+        console.log("没有成员，跳过讨论控制服务");
+      }
+    } catch (error) {
+      console.error("发送消息失败:", error);
+    } finally {
+      // 确保消息列表滚动到底部
+      messageListRef.current?.scrollToBottom();
+    }
+  };
+
+  const handleStartDiscussion = async (topic: string, customMembers?: { agentId: string; isAutoReply: boolean }[]) => {
+    console.log("开始讨论:", topic);
+
+    try {
+      // 使用当前讨论，不创建新的讨论
+      if (!currentDiscussion) {
+        console.error("当前没有可用的讨论");
+        return;
+      }
+
+      console.log("使用当前讨论:", currentDiscussion.id);
+
+      // 如果提供了自定义成员，直接使用它们
+      if (customMembers && customMembers.length > 0) {
+        console.log(`使用自定义成员: ${customMembers.length} 个成员`);
+        
+        // 批量添加所有自定义成员
+        console.log(`批量添加 ${customMembers.length} 个自定义成员...`);
+        await addMembers(customMembers);
+
+        // 发送用户消息
+        await onSendMessage(topic, "user");
+
+        // 运行讨论控制服务
+        try {
+          await discussionControlService.run();
+        } catch (error) {
+          console.error("运行讨论控制服务失败:", error);
+        }
+        
+        return;
+      }
+
+      // 使用从InitialExperience组件传递过来的selectedCombinationKey
+      // 这个值在InitialExperience组件中由用户选择
+      const combinationKey = window.localStorage.getItem('selectedCombinationKey') || "thinkingTeam";
+      
+      const selectedCombination = AGENT_COMBINATIONS[combinationKey as AgentCombinationType];
+      console.log("选择的组合:", combinationKey, selectedCombination.name);
+
+      // 确保localStorage中的值是最新的
+      if (customMembers && customMembers.length > 0) {
+        console.log("使用自定义团队");
+      } else {
+        console.log("使用预设团队:", combinationKey);
+        // 再次确认localStorage中的值是正确的
+        window.localStorage.setItem('selectedCombinationKey', combinationKey);
+      }
+
+      // 3. 添加主持人和参与者
+      const membersToAdd = [];
+
+      // 创建一个函数来查找代理ID
+      const findAgentIdByName = (name: string) => {
+        for (const agent of agents) {
+          if (agent.name === name) {
+            return agent.id;
+          }
+        }
+        return null;
+      };
+
+      // 添加主持人
+      const moderatorName = selectedCombination.moderator.name;
+      const moderatorId = findAgentIdByName(moderatorName);
+
+      if (moderatorId) {
+        console.log(`准备添加主持人: ${moderatorId} (${moderatorName})`);
+        membersToAdd.push({ agentId: moderatorId, isAutoReply: true });
+      } else {
+        console.error(`未找到匹配的主持人: ${moderatorName}`);
+      }
+
+      // 添加参与者
+      for (const participant of selectedCombination.participants) {
+        const participantName = participant.name;
+        const participantId = findAgentIdByName(participantName);
+
+        if (participantId) {
+          console.log(`准备添加参与者: ${participantId} (${participantName})`);
+          membersToAdd.push({ agentId: participantId, isAutoReply: true });
+        } else {
+          console.error(`未找到匹配的参与者: ${participantName}`);
+        }
+      }
+
+      // 批量添加所有成员
+      if (membersToAdd.length > 0) {
+        console.log(`批量添加 ${membersToAdd.length} 个成员...`);
+        await addMembers(membersToAdd);
+
+        // 发送用户消息
+        await onSendMessage(topic, "user");
+
+        // 运行讨论控制服务
+        try {
+          await discussionControlService.run();
+        } catch (error) {
+          console.error("运行讨论控制服务失败:", error);
+        }
+      } else {
+        console.error("没有成功添加任何成员，无法启动讨论");
+      }
+    } catch (error) {
+      console.error("启动讨论失败:", error);
+    }
   };
 
   const agentInfoGetter = {
@@ -63,14 +207,24 @@ export function ChatArea({
     );
   }
 
-  // 如果没有成员且没有消息，显示设置页面
+  // 如果没有成员且没有消息，显示初始体验页面
   if (members.length === 0 && messages.length === 0) {
-    return <DiscussionSetupContainer />;
+    return (
+      <InitialExperience
+        onStart={handleStartDiscussion}
+        onChangeTeam={(key) => {
+          console.log("切换团队:", key);
+          // 确保localStorage中的值是正确的
+          window.localStorage.setItem('selectedCombinationKey', key);
+        }}
+        className="h-full"
+      />
+    );
   }
 
   return (
     <div className={cn("flex flex-col h-full", className)}>
-      {/* 消息列表区域 - 自动收缩区域 */}
+      {/* 消息列表区域 */}
       <div
         className={cn(
           "flex-1 min-h-0 overflow-y-auto pl-4 relative scrollbar-thin",

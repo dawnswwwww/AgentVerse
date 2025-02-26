@@ -7,7 +7,8 @@ export type AgentCombinationType =
   | "creativeIdeation"
   | "productDevelopment"
   | "freeThinking"
-  | "agentDesign";
+  | "agentDesign"
+  | "thinkingTeam";
 
 // 定义参与者 ID
 export const PARTICIPANT_IDS = {
@@ -423,6 +424,21 @@ export const MODERATORS_MAP: Record<string, Omit<Agent, "id">> = {
 
 // 组合配置
 export const AGENT_COMBINATIONS = {
+  thinkingTeam: {
+    name: "思维探索团队",
+    description: "由创意激发主持人带领的多维度思考团队，专注于深度思考和创新",
+    moderator: MODERATORS_MAP[MODERATOR_IDS.CREATIVE_MODERATOR],
+    participants: [
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.CROSS_THINKER],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.SYSTEM_THINKER],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.LOGIC_ANALYZER],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.PHILOSOPHY_EXPLORER],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.FUTURE_PREDICTOR],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.DEVIL_ADVOCATE],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.QUALITY_REVIEWER],
+    ],
+  },
+  
   storyCreation: {
     name: "小说创作组",
     description: "专注于故事创作和剧情发展的讨论组",

@@ -45,7 +45,8 @@ function AppContent() {
       version: 1,
     }
   );
-  const showDesktopMembers = isDesktop && showMembersForDesktop;
+  const [isInitialState, setIsInitialState] = useState(false);
+  const showDesktopMembers = isDesktop && showMembersForDesktop && !isInitialState;
   const { data: currentDiscussionId } = useProxyBeanState(
     discussionControlService.store,
     "currentDiscussionId"
@@ -247,11 +248,13 @@ function AppContent() {
                   }
                   mainContent={
                     <div className="flex flex-col h-full">
-                      <DiscussionController
-                        status={status}
-                        onToggleMembers={handleToggleMembers}
-                        enableSettings={false}
-                      />
+                      {!isInitialState && (
+                        <DiscussionController
+                          status={status}
+                          onToggleMembers={handleToggleMembers}
+                          enableSettings={false}
+                        />
+                      )}
                       <div className="flex-1 min-h-0">
                         <ChatArea
                           key={currentDiscussionId}
@@ -259,6 +262,7 @@ function AppContent() {
                           onSendMessage={handleMessage}
                           getAgentName={getAgentName}
                           getAgentAvatar={getAgentAvatar}
+                          onInitialStateChange={setIsInitialState}
                         />
                       </div>
                     </div>

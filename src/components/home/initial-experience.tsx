@@ -234,7 +234,7 @@ export function InitialExperience({
       className={cn(
         "relative flex flex-col",
         "py-8 md:py-12",
-        "overflow-y-auto",
+        "overflow-y-auto overflow-x-hidden",
         "h-[100vh]",
         className
       )}
@@ -259,11 +259,12 @@ export function InitialExperience({
       {/* 主要内容区域 */}
       <div className={cn(
         "relative flex flex-col items-center w-full mx-auto",
-        "flex-1",
+        "flex-1 px-4",
+        "max-w-full"
       )}>
         {/* Logo 和标题区域 */}
         <motion.div
-          className="mb-12 md:mb-16 text-center"
+          className="mb-12 md:mb-16 text-center w-full"
           variants={{
             initial: { opacity: 0, y: 20 },
             animate: { opacity: 1, y: 0 }
@@ -274,7 +275,7 @@ export function InitialExperience({
 
         {/* 输入区域 */}
         <motion.div
-          className="w-full max-w-2xl mx-auto space-y-8 px-4"
+          className="w-full max-w-2xl mx-auto space-y-8"
           variants={{
             initial: { opacity: 0, y: 20 },
             animate: { opacity: 1, y: 0 }
@@ -301,9 +302,9 @@ export function InitialExperience({
                 <div className="h-px flex-grow max-w-[80px] bg-gradient-to-l from-transparent to-purple-500/30"></div>
               </div>
               
-              <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex flex-col md:flex-row gap-4 max-w-full">
                 {/* 左侧团队列表 */}
-                <div className="w-full md:w-1/3 bg-background/60 backdrop-blur-sm rounded-lg border border-border/50 shadow-sm flex flex-col">
+                <div className="w-full md:w-1/3 bg-background/60 backdrop-blur-sm rounded-lg border border-border/50 shadow-sm flex flex-col h-[400px] min-w-0">
                   {/* 固定在顶部的自定义团队按钮 */}
                   <button
                     onClick={handleCustomTeamClick}
@@ -402,7 +403,7 @@ export function InitialExperience({
                 </div>
                 
                 {/* 右侧团队详情 */}
-                <div className="w-full md:w-2/3 bg-background/60 backdrop-blur-sm rounded-lg border border-border/50 p-4 shadow-sm">
+                <div className="w-full md:w-2/3 bg-background/60 backdrop-blur-sm rounded-lg border border-border/50 p-4 shadow-sm h-[400px] overflow-y-auto scrollbar-thin min-w-0">
                   {customMembers.length > 0 ? (
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">

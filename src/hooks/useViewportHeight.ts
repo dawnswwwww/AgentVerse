@@ -64,6 +64,25 @@ export function useViewportHeight(): ViewportState {
   }, [getVisibleHeight, isAndroid, isMobile]);
 
   useEffect(() => {
+    const handleResize = () => {
+      // 使用 requestAnimationFrame 来确保视口更新的平滑性
+      requestAnimationFrame(() => {
+        setState({
+          height: window.innerHeight,
+          isKeyboardVisible: false,
+          keyboardHeight: 0
+        });
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    // 初始化时立即执行一次
+    handleResize();
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
     if (!isMobile) {
       window.addEventListener('resize', updateViewportState);
       return () => window.removeEventListener('resize', updateViewportState);

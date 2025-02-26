@@ -177,11 +177,23 @@ export function InitialExperience({
   const handleInputSubmit = (inputTopic: string) => {
     setTopic(inputTopic);
     if (customMembers.length > 0) {
-      // 如果已经选择了自定义成员，直接使用它们
+      // 使用自定义成员
       onStart(inputTopic, customMembers);
     } else {
-      // 否则使用当前选中的组合
-      onStart(inputTopic);
+      // 从 agents 中找到对应的成员
+      const combination = AGENT_COMBINATIONS[selectedCombinationKey];
+      const combinationMembers = agents
+        .filter(agent => 
+          agent.name === combination.moderator.name || 
+          combination.participants.some(p => p.name === agent.name)
+        )
+        .map(agent => ({
+          agentId: agent.id,
+          // 只有主持人设置为自动回复
+          isAutoReply: agent.name === combination.moderator.name
+        }));
+      
+      onStart(inputTopic, combinationMembers);
     }
   };
 

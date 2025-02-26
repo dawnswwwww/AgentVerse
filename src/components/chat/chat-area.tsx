@@ -90,7 +90,6 @@ export function ChatArea({
     console.log("开始讨论:", topic);
 
     try {
-      // 使用当前讨论，不创建新的讨论
       if (!currentDiscussion) {
         console.error("当前没有可用的讨论");
         return;
@@ -101,44 +100,24 @@ export function ChatArea({
       // 如果提供了自定义成员，直接使用它们
       if (customMembers && customMembers.length > 0) {
         console.log(`使用自定义成员: ${customMembers.length} 个成员`);
-        
-        // 批量添加所有自定义成员
-        console.log(`批量添加 ${customMembers.length} 个自定义成员...`);
         await addMembers(customMembers);
-
-        // 发送用户消息
         await onSendMessage(topic, "user");
-
-        // 运行讨论控制服务
         try {
           await discussionControlService.run();
         } catch (error) {
           console.error("运行讨论控制服务失败:", error);
         }
-        
         return;
       }
 
-      // 使用从InitialExperience组件传递过来的selectedCombinationKey
-      // 这个值在InitialExperience组件中由用户选择
+      // 使用预设组合
       const combinationKey = window.localStorage.getItem('selectedCombinationKey') || "thinkingTeam";
-      
       const selectedCombination = AGENT_COMBINATIONS[combinationKey as AgentCombinationType];
       console.log("选择的组合:", combinationKey, selectedCombination.name);
 
-      // 确保localStorage中的值是最新的
-      if (customMembers && customMembers.length > 0) {
-        console.log("使用自定义团队");
-      } else {
-        console.log("使用预设团队:", combinationKey);
-        // 再次确认localStorage中的值是正确的
-        window.localStorage.setItem('selectedCombinationKey', combinationKey);
-      }
-
-      // 3. 添加主持人和参与者
       const membersToAdd = [];
 
-      // 创建一个函数来查找代理ID
+      // 查找代理ID
       const findAgentIdByName = (name: string) => {
         for (const agent of agents) {
           if (agent.name === name) {
@@ -148,7 +127,7 @@ export function ChatArea({
         return null;
       };
 
-      // 添加主持人
+      // 添加主持人（设置为自动回复）
       const moderatorName = selectedCombination.moderator.name;
       const moderatorId = findAgentIdByName(moderatorName);
 
@@ -159,14 +138,14 @@ export function ChatArea({
         console.error(`未找到匹配的主持人: ${moderatorName}`);
       }
 
-      // 添加参与者
+      // 添加参与者（不设置自动回复）
       for (const participant of selectedCombination.participants) {
         const participantName = participant.name;
         const participantId = findAgentIdByName(participantName);
 
         if (participantId) {
           console.log(`准备添加参与者: ${participantId} (${participantName})`);
-          membersToAdd.push({ agentId: participantId, isAutoReply: true });
+          membersToAdd.push({ agentId: participantId, isAutoReply: false });
         } else {
           console.error(`未找到匹配的参与者: ${participantName}`);
         }
@@ -176,11 +155,7 @@ export function ChatArea({
       if (membersToAdd.length > 0) {
         console.log(`批量添加 ${membersToAdd.length} 个成员...`);
         await addMembers(membersToAdd);
-
-        // 发送用户消息
         await onSendMessage(topic, "user");
-
-        // 运行讨论控制服务
         try {
           await discussionControlService.run();
         } catch (error) {

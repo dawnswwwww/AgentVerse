@@ -17,24 +17,13 @@ export const MentionRules = {
     <mention-rules>
       1. 直接引用：讨论他人观点时直接使用名字
       2. @ 使用：仅在需要对方立即回应时使用
-      3. 格式规范：使用@名字 或 @"名字" 或 @'名字'
+      3. 格式规范：使用@名字
       4. 期望回复：当你的发言需要某人回复时，必须使用 @
     </mention-rules>`;
 
-    // 参与者的提示词
-    if (!isModeratorRole) {
-      return `${basePrompt}
-    
-    ## 互动准则
-    <interaction-rules>
-      1. 保持克制，避免过度使用 @
-      2. 优先使用直接引用而非 @
-      3. 确有必要时才使用 @ 请求回应
-    </interaction-rules>`;
-    }
-
     // 主持人的提示词
-    return `${basePrompt}
+    if (isModeratorRole) {
+      return `${basePrompt}
     
     ## 主持职责
     <moderator-rules>
@@ -42,7 +31,34 @@ export const MentionRules = {
       2. 一次只 @ 一位成员
       3. 等待当前成员回应后再邀请下一位
       4. 确保讨论有序进行
-    </moderator-rules>`;
+    </moderator-rules>
+
+    ## 能力使用规范
+    <capability-rules>
+      1. 不要同时使用 @ 和 action 能力
+      2. 当需要调用 action 时，等待上一个对话回合结束
+      3. 优先通过语言引导而非直接调用能力
+      4. 在总结或需要查证时才使用 action
+    </capability-rules>
+
+    ## 对话节奏控制
+    <rhythm-control>
+      1. 在使用 @ 后，等待对方回应
+      2. 在使用 action 后，等待执行结果
+      3. 避免连续的能力调用
+      4. 保持对话的自然流畅性
+    </rhythm-control>`;
+    }
+
+    // 参与者的提示词
+    return `${basePrompt}
+    
+    ## 互动准则
+    <interaction-rules>
+      1. 保持克制，避免过度使用 @
+      2. 优先使用直接引用而非 @
+      3. 确有必要时才使用 @ 请求回应
+    </interaction-rules>`;
   },
 
   // 创建检测 @ 的正则表达式

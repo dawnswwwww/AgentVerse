@@ -1,7 +1,7 @@
 import { BaseActionExecutor, DefaultActionExecutor } from "@/lib/agent/action";
 import { ActionDef, ActionParser } from "@/lib/agent/action/action-parser";
 import { CapabilityRegistry } from "@/lib/capabilities";
-import { DiscussionKeys } from "@/lib/discussion/discussion-env";
+import { DiscussionKeys, SpeakRequest } from "@/lib/discussion/discussion-env";
 import { generateId } from "@/lib/utils";
 import { messagesResource } from "@/resources";
 import { messageService } from "@/services/message.service";
@@ -21,17 +21,39 @@ export class ChatAgent extends MessageHandlingAgent {
   private actionExecutor: BaseActionExecutor = new DefaultActionExecutor();
   private capabilityRegistry = CapabilityRegistry.getInstance();
 
-  protected async handleActionResult(
-    message: ActionResultMessage
-  ): Promise<void> {
-    const response = this.useStreaming
-      ? await this.generateStreamingActionResponse(message)
-      : await this.generateActionResponse(message);
+  protected async handleActionResult(message: ActionResultMessage): Promise<void> {
+    // 创建说话请求
+    const request: SpeakRequest = {
+      agentId: this.config.agentId,
+      agentName: this.config.name,
+      message,
+      reason: {
+        type: "follow_up",
+        description: "响应操作执行结果",
+        factors: {
+          isModerator: this.config.role === "moderator",
+          isContextRelevant: 1, // 操作结果响应具有高相关性
+          timeSinceLastSpeak: this.state.lastSpeakTime 
+            ? Date.now() - this.state.lastSpeakTime.getTime()
+            : Infinity
+        }
+      },
+      priority: 0,
+      timestamp: new Date(),
+      onGranted: async () => {
+        const response = this.useStreaming
+          ? await this.generateStreamingActionResponse(message)
+          : await this.generateActionResponse(message);
 
-    if (response) {
-      this.env.eventBus.emit(DiscussionKeys.Events.message, response);
-      this.onDidSendMessage(response);
-    }
+        if (response) {
+          this.env.eventBus.emit(DiscussionKeys.Events.message, response);
+          this.onDidSendMessage(response);
+        }
+      }
+    };
+
+    // 提交说话请求
+    this.env.submitSpeakRequest(request);
   }
 
   protected onDidSendMessage(agentMessage: AgentMessage): void | Promise<void> {

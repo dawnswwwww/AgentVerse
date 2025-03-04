@@ -27,15 +27,16 @@ export function AddAgentDialogContent() {
 
     const query = searchQuery.toLowerCase();
     return agents.filter((agent) => {
-      // 支持名称、个性和拼音匹配
+      // 添加空值检查
       const nameMatch =
-        agent.name.toLowerCase().includes(query) ||
-        match.match(agent.name, query);
+        (agent.name?.toLowerCase().includes(query) || false) ||
+        (agent.name ? match.match(agent.name, query) : false);
       const personalityMatch =
-        agent.personality.toLowerCase().includes(query) ||
-        match.match(agent.personality, query);
+        (agent.personality?.toLowerCase().includes(query) || false) ||
+        (agent.personality ? match.match(agent.personality, query) : false);
+      const idMatch = agent.id?.toLowerCase().includes(query) || false;
 
-      return nameMatch || personalityMatch;
+      return nameMatch || personalityMatch || idMatch;
     });
   }, [agents, searchQuery]);
 

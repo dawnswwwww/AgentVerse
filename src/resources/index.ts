@@ -12,22 +12,26 @@ import { filter, firstValueFrom, switchMap } from "rxjs";
 // 应用级资源
 export const agentListResource = createResource(() =>
   agentService.listAgents().then(async (existingAgents) => {
-    // 检查每个预设的 agent 是否存在
-    const missingAgents = DEFAULT_AGENTS.filter(
-      (defaultAgent) =>
-        !existingAgents.some(
-          (existing) =>
-            existing.name === defaultAgent.name &&
-            existing.role === defaultAgent.role
-        )
-    );
-    if (missingAgents.length > 0) {
-      await Promise.all(
-        missingAgents.map((agent) => agentService.createAgent(agent))
+    // 检查每个预设的 agent 是否存在或需要更新
+    const agentUpdates = DEFAULT_AGENTS.map(async (defaultAgent) => {
+      const existingAgent = existingAgents.find(
+        (existing) => existing.name === defaultAgent.name
       );
-      return agentService.listAgents();
-    }
-    return existingAgents;
+
+      if (!existingAgent) {
+        // 创建新的 agent
+        return agentService.createAgent(defaultAgent);
+      } else {
+        // 更新现有的 agent
+        return agentService.updateAgent(existingAgent.id, {
+          ...defaultAgent,
+          id: existingAgent.id // 保持原有 ID
+        });
+      }
+    });
+
+    await Promise.all(agentUpdates);
+    return agentService.listAgents();
   })
 );
 

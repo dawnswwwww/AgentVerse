@@ -33,9 +33,14 @@ export function AgentList({
             />
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
-                <h3 className="font-medium truncate">
-                  {agent.name}
-                </h3>
+                <div className="flex flex-col">
+                  <h3 className="font-medium truncate">
+                    {agent.name}
+                  </h3>
+                  <span className="text-xs text-muted-foreground">
+                    ID: {agent.id}
+                  </span>
+                </div>
                 <span className="text-xs text-muted-foreground capitalize">
                   {agent.role}
                 </span>

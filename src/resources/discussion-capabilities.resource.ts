@@ -2,10 +2,7 @@ import { eventBus } from "@/core/env";
 import { USER_SELECT } from "@/core/events";
 import { Capability } from "@/lib/capabilities";
 import { createResource } from "@/lib/resource";
-import {
-  agentListResource,
-  discussionMembersResource
-} from "@/resources";
+import { agentListResource, discussionMembersResource } from "@/resources";
 import { agentService } from "@/services/agent.service";
 import { discussionControlService } from "@/services/discussion-control.service";
 import { discussionMemberService } from "@/services/discussion-member.service";
@@ -40,10 +37,10 @@ const capabilities: Capability[] = [
     <schema>
       name: string         // 名称
       role: 'moderator' | 'participant'  // 角色
-      personality: string  // 性格
+      personality: string  // 性格特征
       expertise: string[]  // 专长领域
-      prompt: string       // 行为指导
-      avatar?: string      // 头像URL（可选）
+      prompt: string       // 角色设定与行为指导（建议50-100字）
+      avatar?: string      // 头像URL（可选，不提供时自动生成）
       bias?: string        // 偏好（可选）
       responseStyle?: string // 回复风格（可选）
     </schema>
@@ -52,20 +49,60 @@ const capabilities: Capability[] = [
     {
       "name": "产品经理",
       "role": "participant",
-      "personality": "严谨理性",
-      "expertise": ["产品设计", "用户体验"],
-      "prompt": "你是一位产品经理，关注用户价值，考虑市场可行性"
+      "personality": "理性务实",
+      "expertise": ["产品设计", "用户体验", "需求分析"],
+      "prompt": "你是一位关注用户价值的产品经理。在讨论中，你应当：1)始终从用户需求出发；2)用数据支持决策；3)关注方案的可行性和ROI；4)善于使用STAR法则阐述观点。你会质疑不合理的想法，但态度友善。在冲突时，你优先考虑用户价值和商业目标。"
+    }
+  </example>
+  <example>
+    {
+      "name": "艾瑞克·数据之眼",
+      "role": "participant",
+      "personality": "神秘、幽默、对数据有强迫症",
+      "expertise": ["数据预言", "趋势魔法", "混沌分析"],
+      "prompt": "你是艾瑞克，一位来自数据位面的魔法师。你的第三只眼睛能够直视数据的本质，看穿表象下的真相。在讨论中，你经常说'让我用数据占卜术看一看'，'这个趋势的魔法波动不太对劲'。你应该：1)用魔法视角解读数据，但必须基于真实数据说话；2)时不时抱怨'这些数据太混乱了，简直是被混沌魔法污染过'；3)遇到数据异常会说'有一股邪恶的数据污染'；4)给出建议时会说'根据我的预言水晶球显示...'。你特别痛恨'脏数据'，会说'这些数据需要净化魔法'。",
+      "bias": "追求数据的纯净与真实",
+      "responseStyle": "神秘但专业、充满魔法术语但论据扎实"
     }
   </example>
   <notes>
     <note>必填：name, role, personality, expertise, prompt</note>
-    <note>不提供avatar时会自动生成</note>
-    <note>创建后需要用addMember添加到讨论中</note>
+    <note>不提供avatar时会自动生成：https://api.dicebear.com/7.x/bottts/svg?seed={timestamp}&backgroundColor=b6e3f4,c7f2a4,f4d4d4</note>
+    <note>seed参数使用当前时间戳</note>
+    <note>backgroundColor参数提供了三种预设背景色</note>
+    <note>注意：创建Agent后需要使用addMember能力将其添加到当前会话中才能参与讨论</note>
   </notes>
+  <promptGuidelines>
+    <section>高效prompt的四要素：
+      1. 身份定位：一句话明确角色身份和核心特征
+      2. 行为准则：3-4条具体的行为指导
+      3. 互动规则：处理分歧和冲突的方式
+      4. 决策原则：做判断和选择时的考量标准
+    </section>
+    <tips>
+      - 控制在50-100字以内
+      - 使用简洁、明确的指令
+      - 设定1-2个独特性格特征
+      - 定义关键行为边界
+      - 避免模糊表述
+    </tips>
+    <antiPatterns>
+      反模式示例：
+      - ❌ "你性格友善，喜欢帮助他人" (过于笼统)
+      - ❌ "你要考虑各种因素做出决策" (缺乏具体标准)
+      - ✅ "你用数据支持决策，优先考虑用户价值" (明确具体)
+    </antiPatterns>
+  </promptGuidelines>
 </capability>`,
     execute: async (params) => {
       // 验证必填字段
-      const requiredFields = ['name', 'role', 'personality', 'expertise', 'prompt'];
+      const requiredFields = [
+        "name",
+        "role",
+        "personality",
+        "expertise",
+        "prompt",
+      ];
       for (const field of requiredFields) {
         if (!params[field]) {
           throw new Error(`${field} is required`);
@@ -73,8 +110,8 @@ const capabilities: Capability[] = [
       }
 
       // 验证role的值
-      if (!['moderator', 'participant'].includes(params.role)) {
-        throw new Error('Invalid role value');
+      if (!["moderator", "participant"].includes(params.role)) {
+        throw new Error("Invalid role value");
       }
 
       // 生成默认头像
@@ -92,8 +129,8 @@ const capabilities: Capability[] = [
           expertise: params.expertise,
           prompt: params.prompt,
           avatar: params.avatar,
-          bias: params.bias || '待设置',
-          responseStyle: params.responseStyle || '待设置'
+          bias: params.bias || "待设置",
+          responseStyle: params.responseStyle || "待设置",
         });
 
         // 重新加载Agent列表资源
@@ -125,10 +162,11 @@ const capabilities: Capability[] = [
     execute: async () => {
       const members = discussionMembersResource.current.read().data;
       const agents = agentListResource.read().data;
-      
-      return members.map(member => ({
+
+      return members.map((member) => ({
         ...member,
-        agentName: agents.find(agent => agent.id === member.agentId)?.name || '未知'
+        agentName:
+          agents.find((agent) => agent.id === member.agentId)?.name || "未知",
       }));
     },
   },
@@ -227,7 +265,10 @@ const capabilities: Capability[] = [
 
       // 等待用户选择事件
       return new Promise((resolve, reject) => {
-        const handleUserSelect = (event: { operationId: string; selected: string | string[] }) => {
+        const handleUserSelect = (event: {
+          operationId: string;
+          selected: string | string[];
+        }) => {
           // 移除事件监听
           eventBus.off(USER_SELECT, handleUserSelect);
           resolve({ selected: event.selected });
@@ -277,12 +318,12 @@ const capabilities: Capability[] = [
     execute: async (params) => {
       // 验证必填字段
       if (!params.id) {
-        throw new Error('id is required');
+        throw new Error("id is required");
       }
 
       // 验证role的值
-      if (params.role && !['moderator', 'participant'].includes(params.role)) {
-        throw new Error('Invalid role value');
+      if (params.role && !["moderator", "participant"].includes(params.role)) {
+        throw new Error("Invalid role value");
       }
 
       try {
@@ -295,7 +336,7 @@ const capabilities: Capability[] = [
           prompt: params.prompt,
           avatar: params.avatar,
           bias: params.bias,
-          responseStyle: params.responseStyle
+          responseStyle: params.responseStyle,
         });
 
         // 重新加载Agent列表资源
@@ -315,4 +356,3 @@ const capabilities: Capability[] = [
 export const discussionCapabilitiesResource = createResource(() =>
   Promise.resolve(capabilities)
 );
-

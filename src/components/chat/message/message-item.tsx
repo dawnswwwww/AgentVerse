@@ -97,7 +97,7 @@ export function MessageItem({ message, agentInfo }: MessageItemProps) {
 
   return (
     <div className="group animate-fadeIn hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-all duration-200">
-      <div className="px-2 sm:px-4 py-2 max-w-full sm:max-w-3xl mx-auto">
+      <div className="px-3 sm:px-4 py-2 max-w-full sm:max-w-3xl mx-auto">
         <MessageHeader message={message} agentInfo={agentInfo} />
         <DesktopMessageHeader message={message} agentInfo={agentInfo} />
 
@@ -106,7 +106,7 @@ export function MessageItem({ message, agentInfo }: MessageItemProps) {
           <div
             className={cn(
               "text-sm text-gray-700 dark:text-gray-200",
-              "px-0 sm:px-4 py-1 sm:py-3",
+              "px-3 sm:px-4 py-1 sm:py-3",
               "sm:bg-white sm:dark:bg-gray-800",
               "sm:border sm:border-gray-200 sm:dark:border-gray-700",
               "sm:group-hover:border-gray-300 sm:dark:group-hover:border-gray-600",
@@ -126,7 +126,7 @@ export function MessageItem({ message, agentInfo }: MessageItemProps) {
               {isUserMessage ? (
                 <button
                   onClick={() => handleCopy(message.content)}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-all"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-all"
                   title={copied ? "已复制" : "复制"}
                 >
                   {copied ? (

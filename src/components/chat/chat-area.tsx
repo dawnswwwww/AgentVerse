@@ -231,7 +231,7 @@ export function ChatArea({
               messages={messages}
               agentInfo={agentInfoGetter}
               data-testid="chat-message-list"
-              className="py-4 pr-4"
+              className="py-4 px-4"
             />
           )}
         </AnimatePresence>

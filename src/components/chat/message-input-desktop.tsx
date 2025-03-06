@@ -37,7 +37,7 @@ export const MessageInputDesktop = forwardRef<MessageInputRef, MessageInputProps
     });
 
     return (
-      <div className={cn("bg-white border border-gray-200", className)}>
+      <div className={cn("bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700", className)}>
         <div className="p-3">
           <AutoResizeTextarea
             ref={inputRef}
@@ -45,12 +45,12 @@ export const MessageInputDesktop = forwardRef<MessageInputRef, MessageInputProps
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="在这里输入消息..."
-            className="w-full resize-none text-sm outline-none border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:shadow-none focus-visible:shadow-none shadow-none"
+            className="w-full resize-none text-sm outline-none border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:shadow-none focus-visible:shadow-none shadow-none bg-transparent text-gray-900 dark:text-gray-100"
             disabled={isLoading}
             minRows={2}
             maxRows={6}
           />
-          <div className="text-xs text-gray-400 mt-2 text-right">
+          <div className="text-xs text-gray-400 dark:text-gray-500 mt-2 text-right">
             按 Enter 键发送，按 Shift+Enter 键换行
           </div>
         </div>

@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown } from "lucide-react";
 import { forwardRef, useImperativeHandle } from "react";
 import { MessageCapture } from "./message-capture";
-import { MessageItem } from "./message-item";
+import { MessageItemWechat } from "./message-item-wechat";
 import { useMessageList, type MessageListRef } from "@/hooks/useMessageList";
 
 /**
@@ -64,7 +64,7 @@ export const MessageListMobile = forwardRef<MessageListRef, MessageListMobilePro
         <div className="absolute inset-0">
           <ScrollableLayout
             ref={scrollableLayoutRef}
-            className={cn("h-full overflow-x-hidden", className)}
+            className={cn("h-full overflow-x-hidden bg-white dark:bg-gray-900", className)}
             initialAlignment="bottom"
             unpinThreshold={1}
             pinThreshold={30}
@@ -86,13 +86,22 @@ export const MessageListMobile = forwardRef<MessageListRef, MessageListMobilePro
                 ref={messagesContainerRef}
               >
                 <div className="space-y-3 px-3">
-                  {reorganizedMessages.map((message) => (
-                    <MessageItem
-                      key={message.id}
-                      message={message}
-                      agentInfo={agentInfo}
-                    />
-                  ))}
+                  {reorganizedMessages.map((message, index) => {
+                    // 获取前一条消息的时间戳
+                    const previousMessage = index > 0 ? reorganizedMessages[index - 1] : null;
+                    const previousTimestamp = previousMessage 
+                      ? new Date(previousMessage.timestamp).getTime() 
+                      : undefined;
+                      
+                    return (
+                      <MessageItemWechat
+                        key={message.id}
+                        message={message}
+                        agentInfo={agentInfo}
+                        previousMessageTimestamp={previousTimestamp}
+                      />
+                    );
+                  })}
                 </div>
               </motion.div>
             </AnimatePresence>
@@ -103,14 +112,14 @@ export const MessageListMobile = forwardRef<MessageListRef, MessageListMobilePro
         <div className="absolute right-3 bottom-3 flex flex-col gap-2">
           <MessageCapture
             containerRef={messagesContainerRef}
-            className="rounded-full shadow-lg bg-background/80 backdrop-blur hover:bg-background"
+            className="rounded-full shadow-lg bg-background/80 dark:bg-gray-800/80 backdrop-blur hover:bg-background dark:hover:bg-gray-700"
           />
 
           {showScrollButton && (
             <Button
               variant="outline"
               size="icon"
-              className="rounded-full shadow-lg bg-background/80 backdrop-blur hover:bg-background"
+              className="rounded-full shadow-lg bg-background/80 dark:bg-gray-800/80 backdrop-blur hover:bg-background dark:hover:bg-gray-700"
               onClick={() => scrollToBottom()}
             >
               <ArrowDown className="h-4 w-4" />

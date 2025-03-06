@@ -38,16 +38,16 @@ export const MessageInputMobile = forwardRef<MessageInputRef, MessageInputProps>
     });
 
     return (
-      <div className={cn("bg-gray-50 border-t border-gray-200 sticky bottom-0 z-10", className)}>
+      <div className={cn("bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 sticky bottom-0 z-10", className)}>
         <div className="px-3 py-2">
-          <div className="flex items-center bg-white rounded-md border border-gray-200">
+          <div className="flex items-center bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
             <AutoResizeTextarea
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="在这里输入消息..."
-              className="flex-1 resize-none text-sm outline-none border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:shadow-none focus-visible:shadow-none shadow-none bg-transparent px-3 py-2 min-h-[20px] leading-tight"
+              className="flex-1 resize-none text-sm outline-none border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:shadow-none focus-visible:shadow-none shadow-none bg-transparent px-3 py-2 min-h-[20px] leading-tight text-gray-900 dark:text-gray-100"
               disabled={isLoading}
               minRows={1}
               maxRows={4}
@@ -61,7 +61,7 @@ export const MessageInputMobile = forwardRef<MessageInputRef, MessageInputProps>
                 "h-7 w-7 rounded-md mr-2 flex-shrink-0",
                 canSubmit
                   ? "bg-green-500 hover:bg-green-600 text-white"
-                  : "bg-gray-200 text-gray-400"
+                  : "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500"
               )}
             >
               <Send className="h-4 w-4" />

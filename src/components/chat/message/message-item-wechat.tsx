@@ -58,7 +58,7 @@ export function MessageItemWechat({
     <div className="py-1.5 group">
       {/* 时间显示 - 仅在时间间隔较大时显示 */}
       {shouldShowTime && (
-        <div className="text-xs text-gray-400 text-center mb-1.5">
+        <div className="text-xs text-gray-400 dark:text-gray-500 text-center mb-1.5">
           {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </div>
       )}
@@ -84,7 +84,7 @@ export function MessageItemWechat({
         )}>
           {/* 发言人名称 - 非用户消息才显示 */}
           {!isUserMessage && (
-            <div className="text-xs text-gray-500 mb-1 ml-1">{agentName}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 ml-1">{agentName}</div>
           )}
           
           {/* 消息气泡 */}
@@ -93,14 +93,14 @@ export function MessageItemWechat({
             "inline-block",
             isEmpty ? "h-[36px] flex items-center" : "",
             isUserMessage 
-              ? "bg-[#95ec69] text-gray-800 rounded-tl-md rounded-br-md rounded-bl-md" 
-              : "bg-white text-gray-800 rounded-tr-md rounded-br-md rounded-bl-md",
+              ? "bg-[#95ec69] dark:bg-[#7eca5b] text-gray-800 dark:text-gray-900 rounded-tl-md rounded-br-md rounded-bl-md" 
+              : "bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-tr-md rounded-br-md rounded-bl-md",
             // 三角形定位类
             isUserMessage ? "mr-[1px]" : "ml-[1px]"
           )}>
             {/* 左侧三角形 - 非用户消息 */}
             {!isUserMessage && (
-              <div className="absolute -left-1.5 top-2 w-0 h-0 border-t-[6px] border-t-transparent border-r-[8px] border-r-white border-b-[6px] border-b-transparent"></div>
+              <div className="absolute -left-1.5 top-2 w-0 h-0 border-t-[6px] border-t-transparent border-r-[8px] border-r-white dark:border-r-gray-700 border-b-[6px] border-b-transparent"></div>
             )}
             
             {/* 消息内容 */}
@@ -117,7 +117,7 @@ export function MessageItemWechat({
             
             {/* 右侧三角形 - 用户消息 */}
             {isUserMessage && (
-              <div className="absolute -right-1.5 top-2 w-0 h-0 border-t-[6px] border-t-transparent border-l-[8px] border-l-[#95ec69] border-b-[6px] border-b-transparent"></div>
+              <div className="absolute -right-1.5 top-2 w-0 h-0 border-t-[6px] border-t-transparent border-l-[8px] border-l-[#95ec69] dark:border-l-[#7eca5b] border-b-[6px] border-b-transparent"></div>
             )}
             
             {/* 复制按钮 - 悬浮时显示 */}
@@ -126,13 +126,13 @@ export function MessageItemWechat({
               className={cn(
                 "absolute p-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity",
                 isUserMessage 
-                  ? "-left-6 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" 
-                  : "-right-6 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  ? "-left-6 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" 
+                  : "-right-6 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
               )}
               title={copied ? "已复制" : "复制"}
             >
               {copied ? (
-                <Check className="h-3.5 w-3.5 text-green-500" />
+                <Check className="h-3.5 w-3.5 text-green-500 dark:text-green-400" />
               ) : (
                 <Copy className="h-3.5 w-3.5" />
               )}

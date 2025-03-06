@@ -1,66 +1,61 @@
-# AgentVerse
+# AgentVerse - AI Expert Team Collaboration Platform
 
-A Universe of AI Agents, Unleashing Infinite Possibilities Through Collaboration ✨
-
-AgentVerse is an open-source AI agent ecosystem powered by leading AI models. It enables AI agents to engage in autonomous discussions, thought collisions, and knowledge exploration. Here, each agent can play a unique role, collectively creating wisdom that transcends individual capabilities.
-
-English | [简体中文](./README.md)
+> **In one sentence**: A platform where multiple AI experts collaborate to solve your problems
 
 ![Demo Screenshot](./screenshots/demo2.jpeg)
 
-## 🚀 Online Demo
+## 🔍 What is AgentVerse?
 
-Visit our online demo: [Demo](https://agent.dimstack.com)
+AgentVerse is a platform that enables multiple AI agents (like experts from different fields) to collaborate on solving problems. Imagine:
 
-## ✨ Features
+- 💬 **Not just talking to one AI**, but engaging with an entire team of experts
+- 🧠 **Each AI has its own expertise and personality**, providing multi-perspective insights
+- 🔄 **AIs discuss and interact automatically**, no need for manual coordination
+- 🔥 **AIs can create new AI roles based on your needs and automatically build expert teams**!
 
-- 🌍 Complete Agent Ecosystem
-  - Multi-role Collaboration
-  - Autonomous Dialogue
-  - Scenario-based Applications
-- 🤖 Support for Multiple AI Providers
-  - OpenAI
-  - DeepSeek
-  - Moonshot
-  - Alibaba Cloud DashScope
-  - Doubao
-- 💡 Rich Application Scenarios
-  - Professional Discussions
-  - Brainstorming
-  - Knowledge Exploration
+English | [简体中文](./README.md)
 
-## 💡 Use Cases
+## 🚀 Live Demo
 
-### Interview Practice
-- Simulate technical or behavioral interviews
-- Get feedback and suggestions
+Try it now: [AgentVerse Demo](https://agent.dimstack.com)
 
-### Product Discussion
-- Simulate roles of PM, developer, designer, etc.
-- Conduct requirement analysis and solution discussion
+## 🌟 Why Choose AgentVerse?
 
-### Learning Assistant
-- Create mentor and student roles
-- Explain concepts and answer questions
+### 1️⃣ Multi-Expert Collaboration for Complex Problems
+A single AI may have limited knowledge, but AgentVerse brings multiple specialized AIs together to think collectively, providing more comprehensive solutions.
 
-### Creative Inspiration
-- Multi-perspective thinking
-- Collective wisdom exploration
+### 2️⃣ Automated Expert Discussions
+You only need to pose a question, and the AI experts will automatically engage in discussion, complementing, challenging, and refining each other's ideas to reach a comprehensive conclusion.
 
-## 🛠 Tech Stack
+### 3️⃣ Rich Preset Expert Teams
+For different scenarios, we offer various preset expert combinations:
+- Thinking Exploration Team: Deep thinking and innovation
+- Product Development Team: From idea to implementation
+- Startup Ideation Team: Business models and market analysis
+- Story Creation Team: Narrative design and character development
 
-### Core Technologies
-- **Frontend Framework**: React + TypeScript
-- **Build Tool**: Vite
-- **UI Framework**: Shadcn/ui + TailwindCSS
-- **State Management**: RxJS
+### 4️⃣ AI-Driven Role Creation
+Unique self-expansion capability: AI experts can automatically create and introduce new expert roles based on discussion needs, without human intervention, allowing the team to dynamically adapt to complex problems.
 
-### AI Integration
-- OpenAI API
-- DeepSeek API
-- Moonshot API
-- Alibaba Cloud DashScope API
-- Doubao API
+## 💡 Real-World Applications
+
+### Brainstorming and Idea Generation
+Let AI experts with different thinking styles spark creativity and explore problems from multiple angles.
+
+### Product Design and Evaluation
+Product managers, developers, designers, and UX specialists discuss product solutions together.
+
+### Learning Assistance
+Multiple tutors explain concepts from different perspectives, providing comprehensive learning support.
+
+### Decision Support
+Get analysis and advice from multiple professional perspectives to aid important decisions.
+
+## 🛠️ Technical Features
+
+- 🌐 Complete agent ecosystem: Multi-role collaboration, autonomous dialogue, scenario-based applications
+- 📱 Responsive design: Perfect support for desktop and mobile
+- 🎨 Dark/light theme switching
 
 ## 🚀 Quick Start
 

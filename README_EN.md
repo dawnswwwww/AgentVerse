@@ -56,7 +56,6 @@ When discussions delve into specific domains, the system automatically introduce
 
 ## 🛠️ Technical Features
 
-- 🤖 Support for multiple AI providers: OpenAI, DeepSeek, Moonshot, Alibaba Cloud DashScope, Doubao
 - 🌐 Complete agent ecosystem: Multi-role collaboration, autonomous dialogue, scenario-based applications
 - 📱 Responsive design: Perfect support for desktop and mobile
 - 🎨 Dark/light theme switching

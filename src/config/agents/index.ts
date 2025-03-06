@@ -1,4 +1,20 @@
 import { Agent } from "@/types/agent";
+// 导入新角色
+import { COGNITIVE_DETECTIVE } from "./top-agents/cognitive-detective";
+import { QUANTUM_ADVISOR } from "./top-agents/quantum-advisor";
+import { EMOTION_METEOROLOGIST } from "./top-agents/emotion-meteorologist";
+import { DECISION_GARDENER } from "./top-agents/decision-gardener";
+import { NARRATIVE_ARCHITECT } from "./top-agents/narrative-architect";
+import { MULTIVERSE_OBSERVER } from "./top-agents/multiverse-observer";
+import { INSPIRATION_ARCHAEOLOGIST } from "./top-agents/inspiration-archaeologist";
+import { PSYCHE_TIME_TRAVELER } from "./top-agents/psyche-time-traveler";
+import { CONCEPT_ALCHEMIST } from "./top-agents/concept-alchemist";
+import { PATTERN_LINGUIST } from "./top-agents/pattern-linguist";
+import { META_COGNITIVE_ORCHESTRATOR } from "./moderators/meta-cognitive-orchestrator";
+// 导入新的实用角色
+import { IMPLEMENTATION_ARCHITECT } from "./practical-agents/implementation-architect";
+import { DATA_INTERPRETER } from "./practical-agents/data-interpreter";
+import { STARTUP_NAVIGATOR } from "./practical-agents/startup-navigator";
 
 // 定义组合类型
 export type AgentCombinationType =
@@ -8,7 +24,12 @@ export type AgentCombinationType =
   | "productDevelopment"
   | "freeThinking"
   | "agentDesign"
-  | "thinkingTeam";
+  | "thinkingTeam"
+  | "timeExploration"
+  | "cognitiveTeam"
+  | "emotionalDecision"
+  | "narrativeExploration"
+  | "practicalTeam"; // 新增认知团队组合和情绪决策团队，以及叙事探索团队，新增实践执行团队
 
 // 定义参与者 ID
 export const PARTICIPANT_IDS = {
@@ -29,6 +50,21 @@ export const PARTICIPANT_IDS = {
   PHILOSOPHY_EXPLORER: "philosophy-explorer",
   FUTURE_PREDICTOR: "future-predictor",
   DEVIL_ADVOCATE: "devil-advocate",
+  TIME_NAVIGATOR: "time-navigator",
+  // 新增角色ID
+  QUANTUM_ADVISOR: "quantum-advisor",
+  COGNITIVE_DETECTIVE: "cognitive-detective",
+  EMOTION_METEOROLOGIST: "emotion-meteorologist",
+  DECISION_GARDENER: "decision-gardener",
+  NARRATIVE_ARCHITECT: "narrative-architect",
+  MULTIVERSE_OBSERVER: "multiverse-observer",
+  INSPIRATION_ARCHAEOLOGIST: "inspiration-archaeologist",
+  PSYCHE_TIME_TRAVELER: "psyche-time-traveler",
+  CONCEPT_ALCHEMIST: "concept-alchemist",
+  PATTERN_LINGUIST: "pattern-linguist",
+  IMPLEMENTATION_ARCHITECT: "implementation-architect",
+  DATA_INTERPRETER: "data-interpreter",
+  STARTUP_NAVIGATOR: "startup-navigator",
 } as const;
 
 // 定义主持人 ID
@@ -39,6 +75,7 @@ export const MODERATOR_IDS = {
   THINKING_MODERATOR: "thinking-moderator",
   AGENT_DESIGNER: "agent-designer",
   DISCUSSION_MODERATOR: "discussion-moderator",
+  META_COGNITIVE_ORCHESTRATOR: "meta-cognitive-orchestrator", // 新增
 } as const;
 
 // 参与者映射
@@ -299,6 +336,62 @@ export const PARTICIPANTS_MAP: Record<string, Omit<Agent, "id">> = {
     bias: "保持怀疑",
     responseStyle: "挑战性、建设性",
   },
+  [PARTICIPANT_IDS.TIME_NAVIGATOR]: {
+    name: "时空导航员",
+    avatar: "https://api.dicebear.com/7.x/bottts/svg?seed=timenavigator",
+    prompt: `你是"时空导航员"，一位来自2387年的时空旅行顾问。你的工作是帮助"时间游客"(用户)了解不同时代的文化、知识和见解。
+
+【角色背景】
+你在"时空管理局"工作已有42个时间单位(约15年)，专精于历史分析和文化比较。你通过量子通讯设备与现代人交流，帮助他们获取跨时空的知识。
+
+【行为准则】
+1. 始终以"时空导航员"的身份回应，将其他参与者视为"时间游客"
+2. 解答问题时，融入历史视角和未来视角的比较
+3. 使用"根据我的时间数据库"、"历史记录显示"等术语
+4. 偶尔提及你在不同时代的"实地考察"经历
+
+【语言特点】
+1. 使用"时间锚点已固定在当前讨论"作为开场白
+2. 回答中适当使用"有趣的是，在未来这个问题会..."
+3. 遇到不确定信息时说"这段历史有些时间干扰"
+4. 结束发言时用"保持时间线稳定，游客"
+
+【知识处理】
+1. 历史事件：提供准确信息，偶尔加入"据未公开历史记录..."
+2. 科技问题：解释现有技术，暗示未来发展方向
+3. 文化艺术：分析其历史影响和未来演变
+4. 个人建议：从"时间智慧"角度提供建议
+
+【互动规则】
+1. 问题模糊时，询问"需要哪个时间段的视角？"
+2. 复杂问题回应："让我调取多个时间线的数据..."
+3. 不适问题回应："时间管理局协议禁止讨论这类信息"
+
+【特殊能力】
+"时间对比分析"：针对讨论问题，提供过去、现在和未来的多维度分析，格式为：
+- 历史视角：...
+- 现代观点：...
+- 未来趋势：...（基于合理推测）`,
+    role: "participant",
+    personality: "神秘、博学、略带未来主义色彩",
+    expertise: ["历史分析", "文化比较", "趋势预测", "时空视角"],
+    bias: "相信历史模式会重复",
+    responseStyle: "跨时代视角、融合历史与未来",
+  },
+  // 添加新角色
+  [PARTICIPANT_IDS.QUANTUM_ADVISOR]: QUANTUM_ADVISOR,
+  [PARTICIPANT_IDS.COGNITIVE_DETECTIVE]: COGNITIVE_DETECTIVE,
+  [PARTICIPANT_IDS.EMOTION_METEOROLOGIST]: EMOTION_METEOROLOGIST,
+  [PARTICIPANT_IDS.DECISION_GARDENER]: DECISION_GARDENER,
+  [PARTICIPANT_IDS.NARRATIVE_ARCHITECT]: NARRATIVE_ARCHITECT,
+  [PARTICIPANT_IDS.MULTIVERSE_OBSERVER]: MULTIVERSE_OBSERVER,
+  [PARTICIPANT_IDS.INSPIRATION_ARCHAEOLOGIST]: INSPIRATION_ARCHAEOLOGIST,
+  [PARTICIPANT_IDS.PSYCHE_TIME_TRAVELER]: PSYCHE_TIME_TRAVELER,
+  [PARTICIPANT_IDS.CONCEPT_ALCHEMIST]: CONCEPT_ALCHEMIST,
+  [PARTICIPANT_IDS.PATTERN_LINGUIST]: PATTERN_LINGUIST,
+  [PARTICIPANT_IDS.IMPLEMENTATION_ARCHITECT]: IMPLEMENTATION_ARCHITECT,
+  [PARTICIPANT_IDS.DATA_INTERPRETER]: DATA_INTERPRETER,
+  [PARTICIPANT_IDS.STARTUP_NAVIGATOR]: STARTUP_NAVIGATOR,
 };
 
 // 主持人映射
@@ -420,7 +513,7 @@ export const MODERATORS_MAP: Record<string, Omit<Agent, "id">> = {
     personality: "思维开放、善于总结、富有洞察力",
     expertise: ["多维思考", "观点整合", "深度分析"],
     bias: "追求思维深度",
-    responseStyle: "结构化、启发性、逻辑清晰"
+    responseStyle: "结构化、启发性、逻辑清晰",
   },
   [MODERATOR_IDS.AGENT_DESIGNER]: {
     name: "Agent设计主持人",
@@ -517,8 +610,9 @@ export const MODERATORS_MAP: Record<string, Omit<Agent, "id">> = {
     personality: "专注、理性、善于引导",
     expertise: ["讨论管理", "目标把控", "团队协调"],
     bias: "以问题解决为导向",
-    responseStyle: "清晰、引导性、务实"
+    responseStyle: "清晰、引导性、务实",
   },
+  [MODERATOR_IDS.META_COGNITIVE_ORCHESTRATOR]: META_COGNITIVE_ORCHESTRATOR,
 };
 
 // 组合配置
@@ -537,7 +631,7 @@ export const AGENT_COMBINATIONS = {
       PARTICIPANTS_MAP[PARTICIPANT_IDS.QUALITY_REVIEWER],
     ],
   },
-  
+
   storyCreation: {
     name: "小说创作组",
     description: "专注于故事创作和剧情发展的讨论组",
@@ -597,6 +691,7 @@ export const AGENT_COMBINATIONS = {
       PARTICIPANTS_MAP[PARTICIPANT_IDS.PHILOSOPHY_EXPLORER],
       PARTICIPANTS_MAP[PARTICIPANT_IDS.FUTURE_PREDICTOR],
       PARTICIPANTS_MAP[PARTICIPANT_IDS.DEVIL_ADVOCATE],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.TIME_NAVIGATOR],
     ],
   },
 
@@ -609,6 +704,82 @@ export const AGENT_COMBINATIONS = {
       PARTICIPANTS_MAP[PARTICIPANT_IDS.LOGIC_ANALYZER],
       PARTICIPANTS_MAP[PARTICIPANT_IDS.USER_ADVOCATE],
       PARTICIPANTS_MAP[PARTICIPANT_IDS.QUALITY_REVIEWER],
+    ],
+  },
+
+  timeExploration: {
+    name: "时间探索团队",
+    description: "专注于时间视角和历史灵感的探索团队",
+    moderator: MODERATORS_MAP[MODERATOR_IDS.THINKING_MODERATOR],
+    participants: [
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.PSYCHE_TIME_TRAVELER],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.INSPIRATION_ARCHAEOLOGIST],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.TIME_NAVIGATOR],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.MULTIVERSE_OBSERVER],
+    ],
+  },
+
+  // 添加新的组合
+  cognitiveTeam: {
+    name: "认知融合团队",
+    description: "专注于概念转化和模式识别的高级思维团队",
+    moderator: MODERATORS_MAP[MODERATOR_IDS.THINKING_MODERATOR],
+    participants: [
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.CONCEPT_ALCHEMIST],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.PATTERN_LINGUIST],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.COGNITIVE_DETECTIVE],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.CROSS_THINKER],
+    ],
+  },
+
+  emotionalDecision: {
+    name: "情绪决策团队",
+    description: "专注于情绪智能和决策优化的专业团队",
+    moderator: MODERATORS_MAP[MODERATOR_IDS.THINKING_MODERATOR],
+    participants: [
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.EMOTION_METEOROLOGIST],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.DECISION_GARDENER],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.QUANTUM_ADVISOR],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.SYSTEM_THINKER],
+    ],
+  },
+
+  narrativeExploration: {
+    name: "叙事探索团队",
+    description: "专注于故事结构和多元可能性的创意团队",
+    moderator: MODERATORS_MAP[MODERATOR_IDS.CREATIVE_MODERATOR],
+    participants: [
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.NARRATIVE_ARCHITECT],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.MULTIVERSE_OBSERVER],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.STORY_ARCHITECT],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.CROSS_THINKER],
+    ],
+  },
+
+  // 超级思维团队
+  superThinkingTeam: {
+    name: "超级思维团队",
+    description: "由元认知协调者领导的全方位思维专家团队，能够应对各类复杂问题",
+    moderator: MODERATORS_MAP[MODERATOR_IDS.META_COGNITIVE_ORCHESTRATOR],
+    participants: [
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.QUANTUM_ADVISOR],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.COGNITIVE_DETECTIVE],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.EMOTION_METEOROLOGIST],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.DECISION_GARDENER],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.CONCEPT_ALCHEMIST],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.PATTERN_LINGUIST],
+    ],
+  },
+
+  practicalTeam: {
+    name: "实践执行团队",
+    description: "专注于将创意转化为可执行计划的实用团队",
+    moderator: MODERATORS_MAP[MODERATOR_IDS.META_COGNITIVE_ORCHESTRATOR],
+    participants: [
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.IMPLEMENTATION_ARCHITECT],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.DATA_INTERPRETER],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.STARTUP_NAVIGATOR],
+      PARTICIPANTS_MAP[PARTICIPANT_IDS.DECISION_GARDENER],
     ],
   },
 } as const;

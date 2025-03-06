@@ -93,7 +93,7 @@ export function MessageItemWechat({
             "inline-block",
             isEmpty ? "h-[36px] flex items-center" : "",
             isUserMessage 
-              ? "bg-[#95ec69] dark:bg-[#7eca5b] text-gray-800 dark:text-gray-900 rounded-tl-md rounded-br-md rounded-bl-md" 
+              ? "bg-[#95ec69] dark:bg-[#2b7d4f] text-gray-800 dark:text-gray-100 rounded-tl-md rounded-br-md rounded-bl-md" 
               : "bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-tr-md rounded-br-md rounded-bl-md",
             // 三角形定位类
             isUserMessage ? "mr-[1px]" : "ml-[1px]"
@@ -104,7 +104,7 @@ export function MessageItemWechat({
             )}
             
             {/* 消息内容 */}
-            <div className={cn("min-w-[40px]", isEmpty ? "h-[20px]" : "")}>
+            <div className={cn("min-w-[40px] whitespace-pre-wrap markdown-fix", isEmpty ? "h-[20px]" : "")}>
               {isEmpty ? (
                 <span className="opacity-0">&nbsp;</span>
               ) : (
@@ -117,7 +117,7 @@ export function MessageItemWechat({
             
             {/* 右侧三角形 - 用户消息 */}
             {isUserMessage && (
-              <div className="absolute -right-1.5 top-2 w-0 h-0 border-t-[6px] border-t-transparent border-l-[8px] border-l-[#95ec69] dark:border-l-[#7eca5b] border-b-[6px] border-b-transparent"></div>
+              <div className="absolute -right-1.5 top-2 w-0 h-0 border-t-[6px] border-t-transparent border-l-[8px] border-l-[#95ec69] dark:border-l-[#2b7d4f] border-b-[6px] border-b-transparent"></div>
             )}
             
             {/* 复制按钮 - 悬浮时显示 */}

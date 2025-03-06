@@ -8,7 +8,7 @@ English | [简体中文](./README.md)
 
 AgentVerse is a platform that enables multiple AI agents (like experts from different fields) to collaborate on solving problems. Imagine:
 
-- 💬 **Not just talking to one AI**, but engaging with an entire team of experts
+- 💬 **Not just a simple chatbot**, but a team of AI experts that can think independently, collaborate, and automatically create new expert roles as needed
 - 🧠 **Each AI has its own expertise and personality**, providing multi-perspective insights
 - 🔄 **AIs discuss and interact automatically**, no need for manual coordination
 - 🔥 **AIs can create new AI roles based on your needs and automatically build expert teams**!

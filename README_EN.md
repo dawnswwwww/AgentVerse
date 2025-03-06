@@ -1,10 +1,6 @@
 # AgentVerse - AI Expert Team Collaboration Platform
 
-> **In one sentence**: A platform where multiple AI experts collaborate to solve your problems
-
-## 🚀 Live Demo
-
-Try it now: [AgentVerse Demo](https://agent.dimstack.com)
+A platform where multiple AI experts collaborate to solve your problems
 
 English | [简体中文](./README.md)
 
@@ -16,6 +12,10 @@ AgentVerse is a platform that enables multiple AI agents (like experts from diff
 - 🧠 **Each AI has its own expertise and personality**, providing multi-perspective insights
 - 🔄 **AIs discuss and interact automatically**, no need for manual coordination
 - 🔥 **AIs can create new AI roles based on your needs and automatically build expert teams**!
+
+## 🚀 Live Demo
+
+Try it now: [AgentVerse Demo](https://agent.dimstack.com)
 
 ![Demo Screenshot](./screenshots/demo2.jpeg)
 

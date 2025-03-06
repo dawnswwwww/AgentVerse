@@ -1,10 +1,6 @@
 # AgentVerse - AI 专家团队协作平台
 
-> **一句话介绍**：让多个 AI 专家一起为你解决问题的协作平台
-
-## 🚀 在线体验
-
-直接体验：[AgentVerse 演示](https://agent.dimstack.com)
+让多个 AI 专家一起为你解决问题的协作平台
 
 [English](./README_EN.md) | 简体中文
 
@@ -16,6 +12,10 @@ AgentVerse 是一个让多个 AI 智能体（如同不同领域的专家）一�
 - 🧠 **每个 AI 都有自己的专业领域和个性**，提供多角度的见解
 - 🔄 **AI 之间会自动交流讨论**，无需你手动协调
 - 🔥 **AI 能根据你的需求创造新的 AI 角色，也能自动组建专家团队**！
+
+## 🚀 在线体验
+
+直接体验：[AgentVerse 演示](https://agent.dimstack.com)
 
 ![演示截图](./screenshots/demo2.jpeg)
 

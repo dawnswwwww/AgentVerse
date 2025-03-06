@@ -104,7 +104,7 @@ export function MessageItemWechat({
             )}
             
             {/* 消息内容 */}
-            <div className={cn("min-w-[40px] whitespace-pre-wrap markdown-fix", isEmpty ? "h-[20px]" : "")}>
+            <div className={cn("min-w-[40px]", isEmpty ? "h-[20px]" : "")}>
               {isEmpty ? (
                 <span className="opacity-0">&nbsp;</span>
               ) : (

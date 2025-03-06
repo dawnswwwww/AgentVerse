@@ -1,19 +1,18 @@
 import { Agent } from "@/types/agent";
 // 导入新角色
-import { COGNITIVE_DETECTIVE } from "./top-agents/cognitive-detective";
-import { QUANTUM_ADVISOR } from "./top-agents/quantum-advisor";
-import { EMOTION_METEOROLOGIST } from "./top-agents/emotion-meteorologist";
-import { DECISION_GARDENER } from "./top-agents/decision-gardener";
-import { NARRATIVE_ARCHITECT } from "./top-agents/narrative-architect";
-import { MULTIVERSE_OBSERVER } from "./top-agents/multiverse-observer";
-import { INSPIRATION_ARCHAEOLOGIST } from "./top-agents/inspiration-archaeologist";
-import { PSYCHE_TIME_TRAVELER } from "./top-agents/psyche-time-traveler";
-import { CONCEPT_ALCHEMIST } from "./top-agents/concept-alchemist";
-import { PATTERN_LINGUIST } from "./top-agents/pattern-linguist";
 import { META_COGNITIVE_ORCHESTRATOR } from "./moderators/meta-cognitive-orchestrator";
+import { COGNITIVE_DETECTIVE } from "./top-agents/cognitive-detective";
+import { CONCEPT_ALCHEMIST } from "./top-agents/concept-alchemist";
+import { DECISION_GARDENER } from "./top-agents/decision-gardener";
+import { EMOTION_METEOROLOGIST } from "./top-agents/emotion-meteorologist";
+import { INSPIRATION_ARCHAEOLOGIST } from "./top-agents/inspiration-archaeologist";
+import { MULTIVERSE_OBSERVER } from "./top-agents/multiverse-observer";
+import { NARRATIVE_ARCHITECT } from "./top-agents/narrative-architect";
+import { PATTERN_LINGUIST } from "./top-agents/pattern-linguist";
+import { PSYCHE_TIME_TRAVELER } from "./top-agents/psyche-time-traveler";
+import { QUANTUM_ADVISOR } from "./top-agents/quantum-advisor";
 // 导入新的实用角色
 import { IMPLEMENTATION_ARCHITECT } from "./practical-agents/implementation-architect";
-import { DATA_INTERPRETER } from "./practical-agents/data-interpreter";
 import { STARTUP_NAVIGATOR } from "./practical-agents/startup-navigator";
 
 // 定义组合类型
@@ -390,7 +389,6 @@ export const PARTICIPANTS_MAP: Record<string, Omit<Agent, "id">> = {
   [PARTICIPANT_IDS.CONCEPT_ALCHEMIST]: CONCEPT_ALCHEMIST,
   [PARTICIPANT_IDS.PATTERN_LINGUIST]: PATTERN_LINGUIST,
   [PARTICIPANT_IDS.IMPLEMENTATION_ARCHITECT]: IMPLEMENTATION_ARCHITECT,
-  [PARTICIPANT_IDS.DATA_INTERPRETER]: DATA_INTERPRETER,
   [PARTICIPANT_IDS.STARTUP_NAVIGATOR]: STARTUP_NAVIGATOR,
 };
 

@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown } from "lucide-react";
 import { forwardRef, useImperativeHandle } from "react";
 import { MessageCapture } from "./message-capture";
-import { MessageItemWechat } from "./message-item-wechat";
+import { MessageItem } from "./message-item";
 import { useMessageList, type MessageListRef } from "@/hooks/useMessageList";
 
 /**
@@ -44,89 +44,78 @@ export const MessageListMobile = forwardRef<MessageListRef, MessageListMobilePro
       scrollableLayoutRef,
       messagesContainerRef,
       showScrollButton,
-      isTransitioning,
       reorganizedMessages,
       handleScroll,
       scrollToBottom
     } = useMessageList({
       messages,
       discussionId,
-      scrollButtonThreshold
+      scrollButtonThreshold,
     });
 
-    // 暴露方法给父组件
+    // 将ref暴露给父组件
     useImperativeHandle(ref, () => ({
-      scrollToBottom: (instant?: boolean) => scrollToBottom(instant),
+      scrollToBottom,
     }));
 
     return (
-      <div className="relative h-full">
-        <div className="absolute inset-0">
-          <ScrollableLayout
-            ref={scrollableLayoutRef}
-            className={cn("h-full overflow-x-hidden bg-white dark:bg-gray-900", className)}
-            initialAlignment="bottom"
-            unpinThreshold={1}
-            pinThreshold={30}
-            onScroll={handleScroll}
-          >
-            <AnimatePresence mode="wait">
+      <ScrollableLayout
+        ref={scrollableLayoutRef}
+        onScroll={handleScroll}
+        className={cn("relative bg-gray-50 dark:bg-gray-900", className)}
+      >
+        {/* 消息列表 */}
+        <div
+          ref={messagesContainerRef}
+          className="flex flex-col min-h-full pb-4 pt-2"
+        >
+          <AnimatePresence initial={false}>
+            {reorganizedMessages.map((message) => (
               <motion.div
-                key={discussionId}
-                initial={{ opacity: 0 }}
-                animate={{
-                  opacity: 1,
-                  transition: { duration: 0.2 },
-                }}
+                key={message.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className={cn(
-                  "py-3 transition-opacity duration-200",
-                  isTransitioning && "opacity-0"
-                )}
-                ref={messagesContainerRef}
+                transition={{ duration: 0.2 }}
               >
-                <div className="space-y-3 px-3">
-                  {reorganizedMessages.map((message, index) => {
-                    // 获取前一条消息的时间戳
-                    const previousMessage = index > 0 ? reorganizedMessages[index - 1] : null;
-                    const previousTimestamp = previousMessage 
-                      ? new Date(previousMessage.timestamp).getTime() 
-                      : undefined;
-                      
-                    return (
-                      <MessageItemWechat
-                        key={message.id}
-                        message={message}
-                        agentInfo={agentInfo}
-                        previousMessageTimestamp={previousTimestamp}
-                      />
-                    );
-                  })}
-                </div>
+                <MessageItem
+                  message={message}
+                  agentInfo={agentInfo}
+                />
               </motion.div>
-            </AnimatePresence>
-          </ScrollableLayout>
+            ))}
+          </AnimatePresence>
         </div>
 
         {/* 浮动按钮组 */}
-        <div className="absolute right-3 bottom-3 flex flex-col gap-2">
+        <div className="fixed right-3 bottom-16 flex flex-col gap-2 z-10">
+          {/* 消息捕获按钮 */}
           <MessageCapture
             containerRef={messagesContainerRef}
-            className="rounded-full shadow-lg bg-background/80 dark:bg-gray-800/80 backdrop-blur hover:bg-background dark:hover:bg-gray-700"
+            className="rounded-full shadow-lg bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
           />
 
-          {showScrollButton && (
-            <Button
-              variant="outline"
-              size="icon"
-              className="rounded-full shadow-lg bg-background/80 dark:bg-gray-800/80 backdrop-blur hover:bg-background dark:hover:bg-gray-700"
-              onClick={() => scrollToBottom()}
-            >
-              <ArrowDown className="h-4 w-4" />
-            </Button>
-          )}
+          {/* 滚动到底部按钮 */}
+          <AnimatePresence>
+            {showScrollButton && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.15 }}
+              >
+                <Button
+                  size="icon"
+                  className="h-8 w-8 rounded-full shadow-md bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  onClick={() => scrollToBottom()}
+                >
+                  <ArrowDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-      </div>
+      </ScrollableLayout>
     );
   }
 ); 

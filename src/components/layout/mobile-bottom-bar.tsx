@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { 
+  Github,
   LayoutGrid,
   MessageSquare,
   Settings,
@@ -42,6 +43,10 @@ export function MobileBottomBar({
       icon: Settings
     }
   ];
+
+  const handleGithubClick = () => {
+    window.open("https://github.com/Peiiii/AgentVerse", "_blank");
+  };
 
   const NavButton = ({
     icon: Icon,
@@ -103,6 +108,33 @@ export function MobileBottomBar({
             {...item}
           />
         ))}
+        
+        {/* GitHub 链接按钮 */}
+        <button
+          type="button"
+          onClick={handleGithubClick}
+          className={cn(
+            "flex-none w-[50px] flex flex-col items-center justify-center",
+            "transition-colors duration-200",
+            "active:bg-black/5 dark:active:bg-white/5",
+            "h-full"
+          )}
+        >
+          <Github 
+            className={cn(
+              "h-[24px] w-[24px] mb-0.5 transition-colors",
+              "text-foreground/80 dark:text-foreground/70 stroke-[1.5]"
+            )}
+          />
+          <span 
+            className={cn(
+              "text-[10px] leading-[1.2]",
+              "text-foreground/80 dark:text-foreground/70"
+            )}
+          >
+            GitHub
+          </span>
+        </button>
       </nav>
     </div>
   );

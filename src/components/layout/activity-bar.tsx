@@ -2,7 +2,7 @@ import { useAddAgentDialog } from "@/components/agent/add-agent-dialog/use-add-a
 import { useSettingsDialog } from "@/components/settings/settings-dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { MessageSquare, Settings, Users } from "lucide-react";
+import { Github, MessageSquare, Settings, Users } from "lucide-react";
 import { ThemeToggle } from "@/components/common/theme";
 
 interface ActivityBarProps {
@@ -12,6 +12,10 @@ interface ActivityBarProps {
 export function ActivityBar({ className }: ActivityBarProps) {
   const { openAddAgentDialog } = useAddAgentDialog();
   const { openSettingsDialog } = useSettingsDialog();
+
+  const handleGithubClick = () => {
+    window.open("https://github.com/Peiiii/AgentVerse", "_blank");
+  };
 
   return (
     <div className={cn(
@@ -48,6 +52,16 @@ export function ActivityBar({ className }: ActivityBarProps) {
       {/* 底部功能按钮 */}
       <div className="flex flex-col items-center gap-1">
         <ThemeToggle className="w-10 h-10 rounded-xl" />
+        
+        <Button 
+          variant="ghost" 
+          size="icon"
+          className="w-10 h-10 rounded-xl"
+          onClick={handleGithubClick}
+          title="访问 GitHub 仓库"
+        >
+          <Github className="w-5 h-5" />
+        </Button>
       </div>
     </div>
   );

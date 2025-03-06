@@ -202,7 +202,7 @@ export function ChatArea({
       {/* 消息列表区域 */}
       <div
         className={cn(
-          "flex-1 min-h-0 overflow-y-auto pl-4 relative scrollbar-thin",
+          "flex-1 min-h-0 overflow-y-auto relative scrollbar-thin",
           messageListClassName
         )}
       >

@@ -19,7 +19,7 @@ export const MessageInput = forwardRef<MessageInputRef, MessageInputProps>(
     const { isMobile } = useBreakpointContext();
 
     if (isMobile) {
-      return <MessageInputMobile {...props} ref={ref} />;
+      return <MessageInputMobile  {...props} ref={ref} />;
     }
 
     return <MessageInputDesktop {...props} ref={ref} />;

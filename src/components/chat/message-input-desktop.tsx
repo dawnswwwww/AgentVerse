@@ -1,9 +1,22 @@
-import { Button } from "@/components/ui/button";
 import { AutoResizeTextarea } from "@/components/ui/auto-resize-textarea";
 import { cn } from "@/lib/utils";
-import { Loader2, Send } from "lucide-react";
 import { forwardRef } from "react";
 import { useMessageInput, type MessageInputRef } from "@/hooks/useMessageInput";
+
+/**
+ * 微信PC端消息输入框设计：
+ * +---------------------------------------------------------------+
+ * |                                                               |
+ * |  +---------------------------------------------------+        |
+ * |  |                                                   |        |
+ * |  |  在这里输入消息...                                |        |
+ * |  |                                                   |        |
+ * |  |                                                   |        |
+ * |  |                                                   |        |
+ * |  +---------------------------------------------------+        |
+ * |                                                               |
+ * +---------------------------------------------------------------+
+ */
 
 interface MessageInputProps {
   onSendMessage: (content: string, agentId: string) => Promise<void>;
@@ -17,9 +30,6 @@ export const MessageInputDesktop = forwardRef<MessageInputRef, MessageInputProps
       setInput,
       isLoading,
       inputRef,
-      canSubmit,
-      inputPlaceholder,
-      handleSubmit,
       handleKeyDown
     } = useMessageInput({
       onSendMessage,
@@ -27,38 +37,22 @@ export const MessageInputDesktop = forwardRef<MessageInputRef, MessageInputProps
     });
 
     return (
-      <div className={cn(className)}>
-        <div className="p-4 space-y-3">
-          <form onSubmit={handleSubmit} className="flex gap-2">
-            <AutoResizeTextarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={inputPlaceholder}
-              className="flex-1 min-h-[2.25rem] text-sm"
-              disabled={isLoading}
-              minRows={1}
-              maxRows={8}
-            />
-            <Button
-              type="submit"
-              size="sm"
-              disabled={!canSubmit}
-              className={cn(
-                "transition-all px-2 h-9 min-w-[36px] self-end",
-                canSubmit
-                  ? "bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600"
-                  : "opacity-50 cursor-not-allowed"
-              )}
-            >
-              {isLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Send className="w-4 h-4" />
-              )}
-            </Button>
-          </form>
+      <div className={cn("bg-white border border-gray-200 rounded-md", className)}>
+        <div className="p-3">
+          <AutoResizeTextarea
+            ref={inputRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="在这里输入消息..."
+            className="w-full resize-none text-sm outline-none border-none focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:shadow-none focus-visible:shadow-none shadow-none"
+            disabled={isLoading}
+            minRows={2}
+            maxRows={6}
+          />
+          <div className="text-xs text-gray-400 mt-2 text-right">
+            按 Enter 键发送，按 Shift+Enter 键换行
+          </div>
         </div>
       </div>
     );

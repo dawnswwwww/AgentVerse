@@ -37,7 +37,7 @@ export const MessageInputDesktop = forwardRef<MessageInputRef, MessageInputProps
     });
 
     return (
-      <div className={cn("bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700", className)}>
+      <div className={cn("bg-white dark:bg-gray-800 rounded-md", className)}>
         <div className="p-3">
           <AutoResizeTextarea
             ref={inputRef}

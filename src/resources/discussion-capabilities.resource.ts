@@ -22,11 +22,67 @@ const capabilities: Capability[] = [
       role: 'moderator' | 'participant'  // 角色
       personality: string  // 性格
       expertise: string[] // 专长
+      prompt: string    // 截断后的提示词
+    </schema>
+  </returns>
+  <notes>
+    <note>为了性能考虑，返回的prompt会被截断为最多30个字符</note>
+    <note>如需获取完整的Agent信息，请使用getAgent能力</note>
+  </notes>
+</capability>`,
+    execute: async () => {
+      const agents = agentListResource.read().data;
+      // 截断prompt，避免数据过大
+      return agents.map((agent) => ({
+        ...agent,
+        prompt:
+          agent.prompt && agent.prompt.length > 30
+            ? agent.prompt.substring(0, 30) + "..."
+            : agent.prompt,
+      }));
+    },
+  },
+  {
+    name: "getAgent",
+    description: `<capability>
+  <n>获取单个Agent的完整信息</n>
+  <params>
+    <schema>
+      id: string  // Agent ID
+    </schema>
+  </params>
+  <returns>
+    <type>Agent</type>
+    <schema>
+      id: string        // Agent ID
+      name: string      // 名称
+      avatar: string    // 头像
+      role: 'moderator' | 'participant'  // 角色
+      personality: string  // 性格
+      expertise: string[] // 专长
+      prompt: string    // 完整提示词
+      bias: string      // 偏好
+      responseStyle: string // 回复风格
     </schema>
   </returns>
 </capability>`,
-    execute: async () => {
-      return agentListResource.read().data;
+    execute: async ({ id }) => {
+      if (!id) {
+        throw new Error("Agent ID is required");
+      }
+
+      try {
+        const agent = await agentService.getAgent(id);
+        if (!agent) {
+          throw new Error(`Agent with ID ${id} not found`);
+        }
+        return agent;
+      } catch (error) {
+        if (error instanceof Error) {
+          throw new Error(`获取Agent失败: ${error.message}`);
+        }
+        throw error;
+      }
     },
   },
   {

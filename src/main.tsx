@@ -4,6 +4,7 @@ import { BreakpointProvider } from "@/contexts/breakpoint-context.tsx";
 import {
   discussionMembersResource,
   discussionsResource,
+  messagesResource,
 } from "@/resources/index.ts";
 import { discussionControlService } from "@/services/discussion-control.service.ts";
 import { discussionMemberService } from "@/services/discussion-member.service.ts";
@@ -20,6 +21,7 @@ import "./styles/theme.css";
 (window as any).discussionMemberService = discussionMemberService;
 (window as any).discussionsResource = discussionsResource;
 (window as any).discussionMembersResource = discussionMembersResource;
+(window as any).messagesResource = messagesResource;
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

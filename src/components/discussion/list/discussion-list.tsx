@@ -6,7 +6,7 @@ import { DEFAULT_DISCUSSION_TITLE } from "@/services/common.util";
 import { filterNormalMessages } from "@/services/message.util";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
-import { DiscussionHeader } from "./discussion-header";
+import { DiscussionListHeader } from "./discussion-list-header";
 import { DiscussionItem } from "./discussion-item";
 import { DiscussionListProps } from "./types";
 
@@ -65,7 +65,7 @@ export function DiscussionList({
     <div
       className={cn("flex flex-col flex-1 overflow-hidden h-full", className)}
     >
-      <DiscussionHeader
+      <DiscussionListHeader
         className={headerClassName}
         isLoading={isLoading}
         disabled={agents.length === 0}

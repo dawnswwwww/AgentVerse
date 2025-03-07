@@ -1,3 +1,4 @@
+import { IAgentConfig } from "@/lib/agent";
 import { ChatMessage } from "@/lib/ai-service";
 import { Capability } from "@/lib/capabilities";
 import { Agent } from "@/types/agent";
@@ -12,7 +13,6 @@ import {
   formatMessage,
   generateCapabilityPrompt,
 } from "./prompts";
-import { IAgentConfig } from "@/lib/agent";
 
 export class PromptBuilder {
   buildPrompt(context: {
@@ -29,7 +29,6 @@ export class PromptBuilder {
       agents,
       messages,
       capabilities,
-      triggerMessage,
     } = context;
     const systemPromptList = [
       createRolePrompt(currentAgent, agents),
@@ -65,26 +64,6 @@ export class PromptBuilder {
           ),
         };
       });
-
-    // 添加当前消息
-    if (triggerMessage) {
-      if (triggerMessage.type === "action_result") {
-        chatMessages.push({
-          role: "system" as const,
-          content: formatActionResult(triggerMessage.results),
-        });
-      } else {
-        chatMessages.push({
-          role: "user" as const,
-          content: formatMessage(
-            triggerMessage.content,
-            triggerMessage.agentId === currentAgentConfig.agentId,
-            getAgentName(triggerMessage.agentId)
-          ),
-        });
-      }
-    }
-
     return [{ role: "system", content: systemPrompt }, ...chatMessages];
   }
 }

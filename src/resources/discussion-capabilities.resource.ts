@@ -9,9 +9,9 @@ import { discussionMemberService } from "@/services/discussion-member.service";
 
 const capabilities: Capability[] = [
   {
-    name: "getAvailableAgents",
+    name: "listAgentLibrary",
     description: `<capability>
-  <name>获取所有可用的Agent列表</name>
+  <name>列出系统中所有可用的Agent库</name>
   <params>无</params>
   <returns>
     <type>Agent数组</type>
@@ -26,8 +26,10 @@ const capabilities: Capability[] = [
     </schema>
   </returns>
   <notes>
+    <note>返回的是系统中所有可用的Agent，不是当前讨论的成员</note>
+    <note>如需获取当前讨论成员列表，请使用getCurrentDiscussionMembers能力</note>
     <note>为了性能考虑，返回的prompt会被截断为最多30个字符</note>
-    <note>如需获取完整的Agent信息，请使用getAgent能力</note>
+    <note>如需获取Agent的完整信息，请使用getAgent能力</note>
   </notes>
 </capability>`,
     execute: async () => {
@@ -43,9 +45,9 @@ const capabilities: Capability[] = [
     },
   },
   {
-    name: "getAgent",
+    name: "getAgentDetail",
     description: `<capability>
-  <n>获取单个Agent的完整信息</n>
+  <name>获取单个Agent的完整详细信息</name>
   <params>
     <schema>
       id: string  // Agent ID
@@ -65,6 +67,10 @@ const capabilities: Capability[] = [
       responseStyle: string // 回复风格
     </schema>
   </returns>
+  <notes>
+    <note>此能力返回Agent的完整信息，包括未截断的prompt</note>
+    <note>仅在需要查看完整定义时使用此能力</note>
+  </notes>
 </capability>`,
     execute: async ({ id }) => {
       if (!id) {
@@ -214,6 +220,10 @@ const capabilities: Capability[] = [
       isAutoReply: boolean // 是否自动回复
     </schema>
   </returns>
+  <notes>
+    <note>返回的是当前讨论中的成员，而非系统中所有Agent</note>
+    <note>如需查看所有可用Agent，请使用listAgentLibrary能力</note>
+  </notes>
 </capability>`,
     execute: async () => {
       const members = discussionMembersResource.current.read().data;
@@ -229,7 +239,7 @@ const capabilities: Capability[] = [
   {
     name: "addMember",
     description: `<capability>
-  <name>添加成员到讨论中</name>
+  <name>添加成员到当前讨论中</name>
   <params>
     <schema>
       agentId: string  // 要添加的Agent ID
@@ -238,6 +248,10 @@ const capabilities: Capability[] = [
   <returns>
     <type>更新后的成员数组</type>
   </returns>
+  <notes>
+    <note>将系统中已有的Agent添加为当前讨论的成员</note>
+    <note>如需查看可添加的Agent列表，请使用listAgentLibrary能力</note>
+  </notes>
 </capability>`,
     execute: async ({ agentId }) => {
       const discussionId = discussionControlService.getCurrentDiscussionId();
@@ -258,7 +272,7 @@ const capabilities: Capability[] = [
   {
     name: "removeMember",
     description: `<capability>
-  <name>从讨论中移除成员</name>
+  <name>从当前讨论中移除成员</name>
   <params>
     <schema>
       memberId: string  // 要移除的成员ID
@@ -267,6 +281,10 @@ const capabilities: Capability[] = [
   <returns>
     <type>更新后的成员数组</type>
   </returns>
+  <notes>
+    <note>仅从当前讨论中移除成员，不会删除系统中的Agent定义</note>
+    <note>参数memberId是成员ID而非agentId，可以通过getCurrentDiscussionMembers获取</note>
+  </notes>
 </capability>`,
     execute: async ({ memberId }) => {
       console.log("[Capabilities] memberId:", memberId);

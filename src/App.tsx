@@ -237,7 +237,7 @@ function AppContent() {
           <div className="flex-1 min-h-0 flex">
             <ActivityBar className="flex" />
             <div className="flex-1 flex justify-center w-full">
-              <div className="w-full max-w-[1600px]">
+              <div className="w-full max-w-[1920px]">
                 <ResponsiveContainer
                   sidebarContent={
                     <div className="h-full bg-card">

@@ -9,6 +9,7 @@ export interface Agent {
   bias: string;
   responseStyle: string;
   conciseMode?: boolean; // 用于单独控制每个agent的精简模式
+  _id?: string; // Optional ID field to support legacy code references
 }
 
 export interface CombinationParticipant {

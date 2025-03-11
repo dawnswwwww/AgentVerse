@@ -28,6 +28,22 @@ export function useSettings({ onChange }: UseSettingsProps = {}) {
     }
   );
 
+  const setSettings = useMemoizedFn(
+    async (updatesMap: Record<string, Partial<SettingItem>>) => {
+      const settingIds = Object.keys(updatesMap);
+      
+      return withOptimisticUpdate(
+        // 乐观更新
+        (settings) =>
+          settings.map((s) => 
+            settingIds.includes(s.id) ? { ...s, ...updatesMap[s.id] } : s
+          ),
+        // API 调用
+        () => settingsService.updateSettings(updatesMap)
+      );
+    }
+  );
+
   const createSetting = useMemoizedFn(async (data: Omit<SettingItem, "id">) => {
     return withOptimisticUpdate(
       // 乐观更新
@@ -64,5 +80,6 @@ export function useSettings({ onChange }: UseSettingsProps = {}) {
     createSetting,
     deleteSetting,
     getSettingValue,
+    setSettings,
   };
 }

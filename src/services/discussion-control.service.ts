@@ -254,7 +254,9 @@ export class DiscussionControlService extends DiscussionStateManager {
   public updateAgentConciseMode(agentId: string, conciseMode: boolean) {
     const targetAgent = this.agentManager.getAgent( agentId );
     if (targetAgent) {
-      targetAgent.conciseMode = conciseMode;
+      if ('conciseMode' in targetAgent) {
+        targetAgent.conciseMode = conciseMode;
+      }
     }
   }
 

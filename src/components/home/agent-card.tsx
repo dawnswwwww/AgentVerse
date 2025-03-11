@@ -29,7 +29,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
   const safeAvatar = avatar || "/avatars/default.png";
   
   // 获取全局设置和更新方法
-  const { settings, setSettings } = useSettings();
+  const { setSettings, getSettingValue } = useSettings();
   const agentService = useAgentService();
   
   // 处理精简模式切换
@@ -39,12 +39,16 @@ export const AgentCard: React.FC<AgentCardProps> = ({
       await agentService.toggleAgentConciseMode(agentId, checked);
     } else {
       // 否则设置全局精简模式
-      setSettings(prev => ({
-        ...prev,
-        conciseMode: checked
-      }));
+      const conciseModeKey = "conciseMode";
+      setSettings({
+        [conciseModeKey]: { value: checked }
+      });
     }
   };
+  
+  // 安全地获取设置值
+  const conciseMode = getSettingValue<boolean>("conciseMode") || false;
+  const conciseLimit = getSettingValue<number>("conciseLimit") || 100;
   
   return (
     <div className={cn("p-3 space-y-3", className)}>
@@ -92,13 +96,13 @@ export const AgentCard: React.FC<AgentCardProps> = ({
           </Label>
           <Switch
             id="concise-mode"
-            checked={settings.conciseMode}
+            checked={conciseMode}
             onCheckedChange={handleConciseModeToggle}
           />
         </div>
         <p className="text-xs text-muted-foreground mt-1">
-          {settings.conciseMode 
-            ? `已启用精简模式，回复将控制在${settings.conciseLimit}字以内` 
+          {conciseMode 
+            ? `已启用精简模式，回复将控制在${conciseLimit}字以内` 
             : "开启后AI回复将更加简短精炼"}
         </p>
       </div>

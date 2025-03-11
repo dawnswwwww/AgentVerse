@@ -36,7 +36,9 @@ export function useDiscussions({ onChange }: UseDiscussionsProps = {}) {
             interval: 3000,
             moderationStyle: "relaxed",
             focusTopics: [],
-            allowConflict: true
+            allowConflict: true,
+            conciseMode: false,  // 默认不启用精简模式
+            conciseLimit: 500    // 默认精简字数限制为500
           },
           createdAt: new Date(),
           updatedAt: new Date()
@@ -130,4 +132,4 @@ export function useDiscussions({ onChange }: UseDiscussionsProps = {}) {
     clearMessages,
     clearAllMessages
   };
-} 
+}

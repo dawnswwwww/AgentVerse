@@ -26,6 +26,9 @@ const isMatch = (id: string, patterns: RegExp[]) => {
 
 export default defineConfig({
   base: args["baseUri"] || "/",
+  server: {
+    allowedHosts: ['.clackypaas.com']
+  },
   plugins: [
     react({
       babel: {

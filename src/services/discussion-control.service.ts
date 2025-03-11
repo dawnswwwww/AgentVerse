@@ -251,6 +251,13 @@ export class DiscussionControlService extends DiscussionStateManager {
     return this.agentManager.getAgent(agentId);
   }
 
+  public updateAgentConciseMode(agentId: string, conciseMode: boolean) {
+    const targetAgent = this.agentManager.getAgent( agentId );
+    if (targetAgent) {
+      targetAgent.conciseMode = conciseMode;
+    }
+  }
+
   // 恢复已有讨论
   private async resumeExistingDiscussion(): Promise<void> {
     const state = this.getState();

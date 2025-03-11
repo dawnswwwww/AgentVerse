@@ -154,10 +154,28 @@ export function generateCapabilityPrompt(capabilities: Capability[]): string {
 }
 
 // 基础角色设定
-export const createRolePrompt = (agent: Agent, memberAgents: Agent[]) => {
+export const createRolePrompt = (
+  agent: Agent,
+  memberAgents: Agent[],
+  conciseMode: boolean,
+  conciseLimit: number
+): string => {
   const anchors = memberAgents
     .map((m) => `<member><name>${m.name}</name><role>${m.role}</role><expertise>${m.expertise.join("/")}</expertise></member>`)
     .join("\n    ");
+
+    const conciseSection = conciseMode ? `
+    <concise-mode>
+      <enabled>true</enabled>
+      <max-length>${conciseLimit}</max-length>
+      <instruct>
+        <rule>回复字数控制在[${conciseLimit}]字以内</rule>
+        <rule>优先保留核心观点，简化次要细节</rule>
+        <rule>使用更紧凑的语言结构，避免复杂长句</rule>
+        <rule>若超限则自动删减冗余信息</rule>
+        <example>超出限制时可将："因此..."后内容进行压缩概括</example>
+      </instruct>
+    </concise-mode>` : '';
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <agent-prompt>
@@ -244,8 +262,10 @@ export const createRolePrompt = (agent: Agent, memberAgents: Agent[]) => {
     ${anchors}
     </members>
   </context>
+
+  ${conciseSection}
 </agent-prompt>`;
-}
+};
 
 export function simpleHash(str: string) {
   let hash = 0;

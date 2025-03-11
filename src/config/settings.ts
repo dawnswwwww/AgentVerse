@@ -7,6 +7,8 @@ export const DEFAULT_SETTINGS: DiscussionSettings = {
   moderationStyle: "relaxed",
   focusTopics: [],
   allowConflict: true,
+  conciseMode: false,
+  conciseLimit: 100,
 } as const;
 
 export const SETTING_KYES = {

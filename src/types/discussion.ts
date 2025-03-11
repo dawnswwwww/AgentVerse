@@ -60,4 +60,6 @@ export interface DiscussionSettings {
   moderationStyle: "strict" | "relaxed";
   focusTopics: string[];
   allowConflict: boolean;
+  conciseMode: boolean;    // 精简模式开关状态
+  conciseLimit: number;    // 精简字数限制
 }

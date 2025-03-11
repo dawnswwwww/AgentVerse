@@ -22,6 +22,10 @@ export class PromptBuilder {
     messages: AgentMessage[];
     triggerMessage?: NormalMessage | ActionResultMessage;
     capabilities: Capability[];
+    discussionSettings?: {
+      conciseMode?: boolean;
+      conciseLimit?: number;
+    };
   }): ChatMessage[] {
     const {
       currentAgent,
@@ -29,9 +33,15 @@ export class PromptBuilder {
       agents,
       messages,
       capabilities,
+      discussionSettings,
     } = context;
+
+    // Get concise mode settings from agent or discussion settings
+    const conciseMode = currentAgent.conciseMode ?? discussionSettings?.conciseMode ?? false;
+    const conciseLimit = discussionSettings?.conciseLimit ?? 100;
+
     const systemPromptList = [
-      createRolePrompt(currentAgent, agents),
+      createRolePrompt(currentAgent, agents, conciseMode, conciseLimit),
       currentAgent.role === "moderator"
         ? generateCapabilityPrompt(capabilities)
         : "",

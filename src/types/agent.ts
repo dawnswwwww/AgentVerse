@@ -8,6 +8,7 @@ export interface Agent {
   expertise: string[];
   bias: string;
   responseStyle: string;
+  conciseMode?: boolean; // 用于单独控制每个agent的精简模式
 }
 
 export interface CombinationParticipant {
@@ -21,4 +22,3 @@ export interface AgentCombination {
   moderator: CombinationParticipant;
   participants: CombinationParticipant[];
 }
-

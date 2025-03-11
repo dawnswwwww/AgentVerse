@@ -68,6 +68,28 @@ export function DiscussionSettingsPanel({ settings, onSettingsChange }: Discussi
           onCheckedChange={(checked) => updateSetting("allowConflict", checked)}
         />
       </div>
+
+      <div className="border-t pt-4">
+        <div className="text-sm font-medium mb-3">精简模式设置</div>
+        
+        <SettingSwitch
+          label="精简回复"
+          description="控制AI回复是否自动精简"
+          checked={settings.conciseMode}
+          onCheckedChange={(checked) => updateSetting("conciseMode", checked)}
+        />
+
+        <SettingSlider
+          label="精简字数限制"
+          description="回复超过该字数将被精简"
+          value={settings.conciseLimit}
+          onChange={(value) => updateSetting("conciseLimit", value)}
+          min={50}
+          max={500}
+          step={10}
+          disabled={!settings.conciseMode}
+        />
+      </div>
     </div>
   );
-} 
+}

@@ -13,6 +13,8 @@ import { DiscussionSettingsButton } from "../settings/discussion-settings-button
 import { DiscussionSettingsPanel } from "../settings/discussion-settings-panel";
 import { ClearMessagesButton } from "./clear-messages-button";
 import { useDiscussionControl } from "./use-discussion-control";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 // 控制按钮组件
 function ControlButton({ isActive, onClick }: { isActive: boolean; onClick: () => void }) {
@@ -191,6 +193,16 @@ export function DiscussionController({
               isActive={isActive} 
               onClick={() => handleStatusChange(!isActive)} 
             />
+            <div className="flex items-center gap-2">
+              <Label className="text-sm text-muted-foreground">精简模式</Label>
+              <Switch
+                checked={settings.conciseMode}
+                onCheckedChange={(checked) =>
+                  setSettings(prev => ({ ...prev, conciseMode:checked }
+                ))}
+                className="shrink-0 transition-all duration-300"
+              />
+            </div>
             <StatusIndicator 
               isActive={isActive}
               messageCount={messageCount}

@@ -6,6 +6,7 @@ import {
   ChatCompletionMessageParam,
 } from "openai/resources/chat/completions";
 import { Observable } from "rxjs";
+// import { processConciseMessage } from "./message-processor";
 
 // 错误类
 export class AIServiceError extends Error {
@@ -102,13 +103,16 @@ export abstract class BaseLLMProvider implements LLMProvider {
     maxTokens?: number
   ): Promise<string> {
     const { model, ...providerParams } = this.getProviderParams();
-    return this.adapter.makeRequest({
+    
+    const rawContent = await this.adapter.makeRequest({
       messages,
       temperature: temperature || this.config.temperature,
       maxTokens: maxTokens || this.config.maxTokens,
       model,
       ...providerParams,
     });
+  
+    return rawContent;
   }
 
   public abstract generateStreamCompletion(
@@ -302,12 +306,21 @@ export class StandardProvider extends BaseLLMProvider {
     maxTokens?: number
   ): Observable<string> {
     const { model, ...providerParams } = this.getProviderParams();
-    return this.adapter.makeStreamRequest({
-      messages,
-      temperature: temperature || this.config.temperature,
-      maxTokens: maxTokens || this.config.maxTokens,
-      model,
-      ...providerParams,
+
+    return new Observable<string>((subscriber) => {
+        this.adapter.makeStreamRequest({
+            messages,
+            temperature: temperature || this.config.temperature,
+            maxTokens: maxTokens || this.config.maxTokens,
+            model,
+            ...providerParams,
+        }).subscribe({
+            next: (content) => {
+                subscriber.next(content);
+            },
+            error: (err) => subscriber.error(err),
+            complete: () => subscriber.complete(),
+        });
     });
   }
 }

@@ -1,5 +1,9 @@
 import React from "react";
 import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { useSettings } from "@/hooks/useSettings";
+import { useAgentService } from "@/services/agent.service";
 
 // 可复用的AgentCard组件，用于展示代理信息的Popover卡片
 interface AgentCardProps {
@@ -9,6 +13,7 @@ interface AgentCardProps {
   expertise?: string[];
   description?: string;
   className?: string;
+  agentId?: string;
 }
 
 export const AgentCard: React.FC<AgentCardProps> = ({
@@ -18,9 +23,28 @@ export const AgentCard: React.FC<AgentCardProps> = ({
   expertise = [],
   description,
   className,
+  agentId,
 }) => {
   // 确保头像URL是有效的
   const safeAvatar = avatar || "/avatars/default.png";
+  
+  // 获取全局设置和更新方法
+  const { settings, setSettings } = useSettings();
+  const agentService = useAgentService();
+  
+  // 处理精简模式切换
+  const handleConciseModeToggle = async (checked: boolean) => {
+    if (agentId) {
+      // 如果有agent ID，则设置特定agent的精简模式
+      await agentService.toggleAgentConciseMode(agentId, checked);
+    } else {
+      // 否则设置全局精简模式
+      setSettings(prev => ({
+        ...prev,
+        conciseMode: checked
+      }));
+    }
+  };
   
   return (
     <div className={cn("p-3 space-y-3", className)}>
@@ -60,6 +84,24 @@ export const AgentCard: React.FC<AgentCardProps> = ({
           </div>
         </div>
       )}
+      
+      <div className="pt-2 border-t border-border">
+        <div className="flex items-center justify-between">
+          <Label htmlFor="concise-mode" className="text-sm cursor-pointer">
+            精简回复模式
+          </Label>
+          <Switch
+            id="concise-mode"
+            checked={settings.conciseMode}
+            onCheckedChange={handleConciseModeToggle}
+          />
+        </div>
+        <p className="text-xs text-muted-foreground mt-1">
+          {settings.conciseMode 
+            ? `已启用精简模式，回复将控制在${settings.conciseLimit}字以内` 
+            : "开启后AI回复将更加简短精炼"}
+        </p>
+      </div>
     </div>
   );
-}; 
+};

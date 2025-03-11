@@ -1,10 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Agent } from "@/types/agent";
 import { DiscussionMember } from "@/types/discussion-member";
-import { ChevronRight, UserX, Settings, Briefcase, Lightbulb, Target } from "lucide-react";
+import { UserX, Settings, Briefcase, Lightbulb, Target } from "lucide-react";
+import { useAgentService } from "@/services/agent.service";
+
 
 interface MemberItemProps {
   member: DiscussionMember;
@@ -17,12 +20,22 @@ interface MemberItemProps {
   className?: string;
 }
 
-function MemberExpandedContent({
-  member,
-  agent,
-  onEditAgent,
-  onRemove
-}: Pick<MemberItemProps, 'member' | 'agent' | 'onEditAgent' | 'onRemove'>) {
+interface Props {
+  member: DiscussionMember;
+  agent: Agent;
+  onEditAgent: () => void;
+  onRemove: (e: React.MouseEvent) => void;
+}
+
+
+const MemberExpandedContent = ({ member, agent }: Props) => {
+  
+  const agentService = useAgentService(); // 使用 agent 服务
+
+  const handleToggleConciseMode = async (checked: boolean) => {
+    await agentService.toggleAgentConciseMode(agent._id, checked);
+  };
+
   return (
     <div className="px-4 pb-4 border-t bg-muted/5 space-y-4">
       <div className="pt-3 space-y-1">
@@ -69,7 +82,27 @@ function MemberExpandedContent({
             {agent.responseStyle || '标准风格'}
           </p>
         </div>
-      </div>
+
+        <div className="flex items-center justify-between">
+           <div className="flex items-center gap-2">
+             <span className="text-sm text-muted-foreground">自动回复</span>
+             <Switch
+               checked={member.isAutoReply}
+               onCheckedChange={null}
+             />
+           </div>
+           <div className="flex items-center gap-2 mt-2">
+             <Label  className="text-sm">
+               精简回复模式
+             </Label>
+             <Switch 
+                checked={agent.conciseMode || false} 
+                onCheckedChange={handleToggleConciseMode}
+                className="ml-auto"
+             />
+           </div>
+        </div>
+         
 
       <div className="flex items-center justify-between pt-2 border-t border-border/30">
         <span className="text-xs text-muted-foreground/70">
@@ -84,10 +117,7 @@ function MemberExpandedContent({
           <Button
             variant="ghost"
             size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEditAgent();
-            }}
+            onClick={null}
             className="h-7 px-2 text-muted-foreground hover:text-foreground"
           >
             <Settings className="h-3.5 w-3.5" />
@@ -95,7 +125,7 @@ function MemberExpandedContent({
           <Button
             variant="ghost"
             size="sm"
-            onClick={onRemove}
+            onClick={null}
             className="h-7 px-2 text-destructive/70 hover:text-destructive hover:bg-destructive/10"
           >
             <UserX className="h-3.5 w-3.5" />
@@ -103,8 +133,9 @@ function MemberExpandedContent({
         </div>
       </div>
     </div>
+    </div>
   );
-}
+};
 
 export function MemberItem({
   member,
@@ -144,12 +175,7 @@ export function MemberItem({
                     {agent.name}
                   </h3>
                 </div>
-                <ChevronRight 
-                  className={cn(
-                    "w-4 h-4 text-muted-foreground/40 transition-transform duration-200 shrink-0",
-                    isExpanded && "rotate-90"
-                  )} 
-                />
+                {/* 更多属性展示或操作 */}
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">
@@ -187,4 +213,4 @@ export function MemberItem({
       </div>
     </Card>
   );
-} 
+}

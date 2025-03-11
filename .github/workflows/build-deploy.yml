@@ -1,13 +1,19 @@
 name: Build and Deploy
 
+# 触发条件配置
+# 只在PR合并到main分支时触发构建和部署流程
+# 同时保留手动触发选项
 on:
-  push:
+  pull_request_target:
+    types: [closed]
     branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    # 确保只在PR被合并时执行工作流
+    if: github.event.pull_request.merged == true
 
     steps:
     - uses: actions/checkout@v4

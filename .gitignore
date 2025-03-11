@@ -28,3 +28,14 @@ tmp
 
 # TypeScript build info
 *.tsbuildinfo
+
+# Clacky specific
+.1024*
+!.1024
+.breakpoints
+
+# Node.js/TypeScript
+.env.local
+
+# pnpm specific
+.pnpm-store

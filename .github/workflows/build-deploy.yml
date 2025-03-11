@@ -39,6 +39,9 @@ jobs:
       env:
         VITE_DASHSCOPE_API_KEY: ${{ secrets.VITE_DASHSCOPE_API_KEY }}
         
+    - name: Install rsync
+      run: sudo apt-get install -y rsync
+        
     - name: Setup SSH
       uses: shimataro/ssh-key-action@v2
       with:

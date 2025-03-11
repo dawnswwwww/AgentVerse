@@ -1,67 +1,71 @@
 name: Build and Deploy
 
-# 触发条件配置
-# 只在PR合并到main分支时触发构建和部署流程
-# 同时保留手动触发选项
 on:
-  pull_request_target:
+  pull_request:
     types: [closed]
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    # 确保只在PR被合并时执行工作流
     if: github.event.pull_request.merged == true
 
     steps:
     - uses: actions/checkout@v4
-      
+
     - name: Set up Node.js 22.x
       uses: actions/setup-node@v4
       with:
         node-version: '22.x'
-        
+
     - name: Install pnpm
       uses: pnpm/action-setup@v3
       with:
         version: latest
         run_install: false
-        
+
     - name: Cache dependencies
       uses: actions/cache@v4
       with:
-        path: ~/.pnpm-store
+        path: |
+          ~/.pnpm-store
+          node_modules
         key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
         restore-keys: |
           ${{ runner.os }}-pnpm-
-          
+
     - name: Install dependencies
-      run: pnpm install
-      
+      run: pnpm install --frozen-lockfile
+
     - name: Build project
       run: pnpm build
       env:
         VITE_DASHSCOPE_API_KEY: ${{ secrets.VITE_DASHSCOPE_API_KEY }}
-        
+
     - name: Install rsync
       run: sudo apt-get install -y rsync
-        
+
+    - name: Ensure target directory exists
+      run: ssh ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} "mkdir -p /usr/share/nginx/html/au/"
+
+    - name: Generate known_hosts dynamically
+      run: ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
     - name: Setup SSH
       uses: shimataro/ssh-key-action@v2
       with:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
-        known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+        known_hosts: ~/.ssh/known_hosts
         if_key_exists: fail
-        
+
     - name: Deploy to server
       run: |
-        rsync -avz -e "ssh -o StrictHostKeyChecking=accept-new" \
+        rsync -avz -e "ssh -o StrictHostKeyChecking=no" \
         dist/ ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:/usr/share/nginx/html/au/
       env:
         SERVER_USERNAME: ${{ secrets.SERVER_USERNAME }}
         SERVER_HOST: ${{ secrets.SERVER_HOST }}
-        
+
     - name: Deployment Status
       run: echo "Deployment completed successfully!"

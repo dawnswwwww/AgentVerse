@@ -1,20 +1,19 @@
 name: Build and Deploy
 
 on:
-  pull_request:
-    types: [closed]
-    branches: [main]
-  workflow_dispatch:
+  push:
+    branches:
+      - main  # PR 合并后，main 分支更新时触发
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true
 
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Node.js 22.x
+    - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '22.x'

@@ -33,7 +33,8 @@ const MemberExpandedContent = ({ member, agent }: Props) => {
   const agentService = useAgentService(); // 使用 agent 服务
 
   const handleToggleConciseMode = async (checked: boolean) => {
-    await agentService.toggleAgentConciseMode(agent._id, checked);
+    const agentId = agent._id ?? agent.id;
+    await agentService.toggleAgentConciseMode(agentId, checked);
   };
 
   return (
@@ -88,7 +89,7 @@ const MemberExpandedContent = ({ member, agent }: Props) => {
              <span className="text-sm text-muted-foreground">自动回复</span>
              <Switch
                checked={member.isAutoReply}
-               onCheckedChange={null}
+               onCheckedChange={() => {}}
              />
            </div>
            <div className="flex items-center gap-2 mt-2">
@@ -117,7 +118,7 @@ const MemberExpandedContent = ({ member, agent }: Props) => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={null}
+            onClick={() => {}}
             className="h-7 px-2 text-muted-foreground hover:text-foreground"
           >
             <Settings className="h-3.5 w-3.5" />
@@ -125,7 +126,7 @@ const MemberExpandedContent = ({ member, agent }: Props) => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={null}
+            onClick={() => {}}
             className="h-7 px-2 text-destructive/70 hover:text-destructive hover:bg-destructive/10"
           >
             <UserX className="h-3.5 w-3.5" />

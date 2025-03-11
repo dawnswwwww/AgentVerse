@@ -26,6 +26,8 @@ export class DiscussionService {
         moderationStyle: "relaxed",
         focusTopics: [],
         allowConflict: true,
+        conciseMode: false, // 默认不启用精简模式
+        conciseLimit: 500,  // 默认精简字数限制为500
       },
       createdAt: new Date(),
       updatedAt: new Date(),

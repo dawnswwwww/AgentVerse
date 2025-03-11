@@ -26,6 +26,15 @@ export class SettingsService {
     return this.provider.update(id, data);
   }
 
+  async updateSettings(
+    updates: Record<string, Partial<SettingItem>>
+  ): Promise<SettingItem[]> {
+    const updatePromises = Object.entries(updates).map(([id, data]) => 
+      this.provider.update(id, data)
+    );
+    return Promise.all(updatePromises);
+  }
+
   async deleteSetting(id: string): Promise<void> {
     return this.provider.delete(id);
   }
